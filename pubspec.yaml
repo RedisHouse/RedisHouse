@@ -40,6 +40,5 @@ flutter:
 #  assets:
 #    - assets/images/tmp/
 
-
 flutter_intl:
   enabled: true
