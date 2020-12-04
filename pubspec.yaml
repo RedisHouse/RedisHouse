@@ -22,6 +22,7 @@ dependencies:
   # 错误捕获上报等操作
   catcher: ^0.3.22
   flutter_easyloading: ^2.2.1
+  split_view: ^1.0.1
 
 dependency_overrides:
   analyzer: ^0.41.1

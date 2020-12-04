@@ -13,9 +13,7 @@ void main() async {
   await Application.doAsyncInit();
   // 全局异常捕获
   CatcherOptions debugOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
-  CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [
-    EmailManualHandler(["hubin.android@gmail.com"])
-  ]);
+  CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
   Catcher(MyApp(), debugConfig: debugOptions, releaseConfig: releaseOptions);
 }
 

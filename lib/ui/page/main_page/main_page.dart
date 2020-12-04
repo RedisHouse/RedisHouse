@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
+import 'package:split_view/split_view.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -23,7 +24,29 @@ class _MainPageState extends BaseStatefulState<MainPage> {
   @override
   Widget buildUI(BuildContext context) {
     return Scaffold(
-      body: Container(color: Colors.red,),
+      body: SplitView(
+        initialWeight: 0.7,
+        view1: SplitView(
+          viewMode: SplitViewMode.Horizontal,
+          view1: Container(
+            child: Center(child: Text("View1")),
+            color: Colors.red,
+          ),
+          view2: Container(
+            child: Center(child: Text("View2")),
+            color: Colors.blue,
+          ),
+          onWeightChanged: (w) => print("Horizon: $w"),
+        ),
+        view2: Container(
+          child: Center(
+            child: Text("View3"),
+          ),
+          color: Colors.green,
+        ),
+        viewMode: SplitViewMode.Vertical,
+        onWeightChanged: (w) => print("Vertical $w"),
+      ),
     );
   }
 
