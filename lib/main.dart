@@ -9,14 +9,15 @@ import 'package:redis_house/router/routers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // 初始化路由
-  Application.initRouter();
   // 初始化
+  Application.doInit();
+  // 初始化-异步
   await Application.doAsyncInit();
   // 全局异常捕获
-  CatcherOptions debugOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
-  CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
-  Catcher(MyApp(), debugConfig: debugOptions, releaseConfig: releaseOptions);
+  // CatcherOptions debugOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
+  // CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
+  // Catcher(MyApp(), debugConfig: debugOptions, releaseConfig: releaseOptions);
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {

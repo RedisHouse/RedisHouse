@@ -23,6 +23,8 @@ dependencies:
   catcher: ^0.3.22
   flutter_easyloading: ^2.2.1
   split_view: ^1.0.1
+  hive: ^1.4.4+1
+  hive_flutter: ^0.3.1
 
 dependency_overrides:
   analyzer: ^0.41.1
@@ -33,7 +35,7 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^1.10.7
   built_value_generator: ^7.1.0
-
+  hive_generator: ^0.8.2
 
 flutter:
   uses-material-design: true
