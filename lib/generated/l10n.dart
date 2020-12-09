@@ -35,7 +35,85 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
+  /// `连接名称`
+  String get connectionNameLabel {
+    return Intl.message(
+      '连接名称',
+      name: 'connectionNameLabel',
+      desc: '',
+      args: [],
+    );
+  }
 
+  /// `连接地址`
+  String get connectionAddressLabel {
+    return Intl.message(
+      '连接地址',
+      name: 'connectionAddressLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `连接端口`
+  String get connectionPortLabel {
+    return Intl.message(
+      '连接端口',
+      name: 'connectionPortLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `连接密码`
+  String get connectionPasswordLabel {
+    return Intl.message(
+      '连接密码',
+      name: 'connectionPasswordLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `新建连接`
+  String get newConnectionLabel {
+    return Intl.message(
+      '新建连接',
+      name: 'newConnectionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `测试连接`
+  String get testConnectionLabel {
+    return Intl.message(
+      '测试连接',
+      name: 'testConnectionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `取消`
+  String get cancelLabel {
+    return Intl.message(
+      '取消',
+      name: 'cancelLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `保存`
+  String get saveLabel {
+    return Intl.message(
+      '保存',
+      name: 'saveLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

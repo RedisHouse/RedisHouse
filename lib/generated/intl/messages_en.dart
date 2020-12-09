@@ -21,6 +21,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static _notInlinedMessages(_) => <String, Function> {
-
+    "cancelLabel" : MessageLookupByLibrary.simpleMessage("取消"),
+    "connectionAddressLabel" : MessageLookupByLibrary.simpleMessage("连接地址"),
+    "connectionNameLabel" : MessageLookupByLibrary.simpleMessage("连接名称"),
+    "connectionPasswordLabel" : MessageLookupByLibrary.simpleMessage("连接密码"),
+    "connectionPortLabel" : MessageLookupByLibrary.simpleMessage("连接端口"),
+    "newConnectionLabel" : MessageLookupByLibrary.simpleMessage("新建连接"),
+    "saveLabel" : MessageLookupByLibrary.simpleMessage("保存"),
+    "testConnectionLabel" : MessageLookupByLibrary.simpleMessage("测试连接")
   };
 }

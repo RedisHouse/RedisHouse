@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_simple_treeview/flutter_simple_treeview.dart';
 import 'package:hive/hive.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
+import 'package:redis_house/ui/page/main_page/dialog/connection_new_dialog.dart';
 import 'package:split_view/split_view.dart';
 
 class MainPage extends StatefulWidget {
@@ -19,11 +20,6 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends BaseStatefulState<MainPage> {
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget buildUI(BuildContext context) {
@@ -39,17 +35,12 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                 width: double.infinity,
                 child: FlatButton(
                   color: Color(0x4E80F7),
-                  onPressed: () async {
-                    // var box = await Hive.openBox("myBox");
-                    var box = Hive.box('myBox');
-
-                    box.put('name', 'David');
-
-                    var name = box.get('name');
-
-                    print('Name: $name');
+                  onPressed: () {
+                    newConnectionDialog(context);
                   },
-                  child: Text("添加连接", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),),
+                  child: Text("添加连接", style: TextStyle(color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),),
                 ),
               ),
               Expanded(
@@ -58,7 +49,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                     scrollDirection: Axis.horizontal,
                     child: Padding(
                       padding: EdgeInsets.all(8),
-                      child: buildTree(),
+                      child: Container(),
                     ),
                   ),
                 ),
@@ -73,56 +64,4 @@ class _MainPageState extends BaseStatefulState<MainPage> {
       ),
     );
   }
-  var jsonText = '''
-{
-  "employee": {
-    "name": "sonoo",
-    "level": 56,
-    "married": true,
-    "hobby": null
-  },
-  "week": [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ]
-}
-''';
-
-  final TreeController _treeController = TreeController(allNodesExpanded: false);
-  /// Builds tree or error message out of the entered content.
-  Widget buildTree() {
-    try {
-      var parsedJson = json.decode(jsonText);
-      return TreeView(
-        nodes: toTreeNodes(parsedJson),
-        treeController: _treeController,
-      );
-    } on FormatException catch (e) {
-      return Text(e.message);
-    }
-  }
-
-  List<TreeNode> toTreeNodes(dynamic parsedJson) {
-    if (parsedJson is Map<String, dynamic>) {
-      return parsedJson.keys
-          .map((k) => TreeNode(
-          content: Text('$k:'), children: toTreeNodes(parsedJson[k])))
-          .toList();
-    }
-    if (parsedJson is List<dynamic>) {
-      return parsedJson
-          .asMap()
-          .map((i, element) => MapEntry(i,
-          TreeNode(content: Text('[$i]:'), children: toTreeNodes(element))))
-          .values
-          .toList();
-    }
-    return [TreeNode(content: Text(parsedJson.toString()))];
-  }
-
 }
