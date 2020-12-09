@@ -56,6 +56,23 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
+                          context.read<NewConnectionBloc>().add(ClearConnectionContentEvent());
+                          Navigator.pop(context);
+                        },
+                        child: Center(child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                          child: Text("清空", style: TextStyle(color: Pigment.fromString("#484848"), fontSize: 14, fontWeight: FontWeight.bold),),
+                        )),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15,),
+                  Container(
+                    color: Colors.white,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
                           if(autoPop) Navigator.pop(context);
                         },
                         child: Center(child: Padding(
@@ -108,8 +125,9 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
   TextEditingController _sshAddressEditingController;
   TextEditingController _sshPortEditingController;
   TextEditingController _sshUserEditingController;
-  TextEditingController _sshPrivateKeyEditingController;
   TextEditingController _sshPasswordEditingController;
+  TextEditingController _sshPrivateKeyEditingController;
+  TextEditingController _sshPrivateKeyPasswordEditingController;
 
   @override
   void initState() {
@@ -122,8 +140,9 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     _sshAddressEditingController    = TextEditingController();
     _sshPortEditingController       = TextEditingController(text: "22");
     _sshUserEditingController       = TextEditingController();
-    _sshPrivateKeyEditingController = TextEditingController();
     _sshPasswordEditingController   = TextEditingController();
+    _sshPrivateKeyEditingController = TextEditingController();
+    _sshPrivateKeyPasswordEditingController   = TextEditingController();
 
     _redisNameEditingController.addListener(redisNameChanged);
     _redisAddressEditingController.addListener(redisAddressChanged);
@@ -132,8 +151,9 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     _sshAddressEditingController.addListener(sshAddressChanged);
     _sshPortEditingController.addListener(sshPortChanged);
     _sshUserEditingController.addListener(sshUserChanged);
-    _sshPrivateKeyEditingController.addListener(sshPrivateKeyChanged);
     _sshPasswordEditingController.addListener(sshPasswordChanged);
+    _sshPrivateKeyEditingController.addListener(sshPrivateKeyChanged);
+    _sshPrivateKeyPasswordEditingController.addListener(sshPrivateKeyPasswordChanged);
   }
   
   void redisNameChanged() {
@@ -178,15 +198,21 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     ));
   }
 
+  void sshPasswordChanged() {
+    context.read<NewConnectionBloc>().add(NewConnectionChangedEvent(
+        sshPassword: _sshPasswordEditingController.text.trim()
+    ));
+  }
+
   void sshPrivateKeyChanged() {
     context.read<NewConnectionBloc>().add(NewConnectionChangedEvent(
         sshPrivateKey: _sshPrivateKeyEditingController.text.trim()
     ));
   }
 
-  void sshPasswordChanged() {
+  void sshPrivateKeyPasswordChanged() {
     context.read<NewConnectionBloc>().add(NewConnectionChangedEvent(
-        sshPassword: _sshPasswordEditingController.text.trim()
+        sshPrivateKeyPassword: _sshPrivateKeyPasswordEditingController.text.trim()
     ));
   }
 
@@ -221,7 +247,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
       _sshPrivateKeyEditingController.text = newConnectionState.sshPrivateKey;
     }
     if(StringUtil.isNotBlank(newConnectionState.sshPrivateKeyPassword)) {
-      _sshPasswordEditingController.text = newConnectionState.sshPrivateKeyPassword;
+      _sshPrivateKeyPasswordEditingController.text = newConnectionState.sshPrivateKeyPassword;
     }
   }
 
@@ -235,8 +261,9 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     _sshAddressEditingController?.removeListener(sshAddressChanged);
     _sshPortEditingController?.removeListener(sshPortChanged);
     _sshUserEditingController?.removeListener(sshUserChanged);
-    _sshPrivateKeyEditingController?.removeListener(sshPrivateKeyChanged);
     _sshPasswordEditingController?.removeListener(sshPasswordChanged);
+    _sshPrivateKeyEditingController?.removeListener(sshPrivateKeyChanged);
+    _sshPrivateKeyPasswordEditingController?.removeListener(sshPrivateKeyPasswordChanged);
 
     _redisNameEditingController?.dispose();
     _redisAddressEditingController?.dispose();
@@ -245,8 +272,9 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     _sshAddressEditingController?.dispose();
     _sshPortEditingController?.dispose();
     _sshUserEditingController?.dispose();
-    _sshPrivateKeyEditingController?.dispose();
     _sshPasswordEditingController?.dispose();
+    _sshPrivateKeyEditingController?.dispose();
+    _sshPrivateKeyPasswordEditingController?.dispose();
   }
 
   @override
@@ -331,12 +359,6 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
                       children: [
                         Switch(value: state.useSSLTLS, onChanged: (value) {
                           changeSwitch(useSSLTLS: value);
-                          // setState(() {
-                          //   useSSLTLS = value;
-                          //   if(value) {
-                          //     useSSHTunnel = false;
-                          //   }
-                          // });
                         }),
                         Text("SSL / TLS")
                       ],
@@ -348,12 +370,6 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
                     children: [
                       Switch(value: state.useSSHTunnel, onChanged: (value) {
                         changeSwitch(useSSHTunnel: value);
-                        // setState(() {
-                        //   useSSHTunnel = value;
-                        //   if(value) {
-                        //     useSSLTLS = false;
-                        //   }
-                        // });
                       }),
                       Text("SSH Tunnel")
                     ],
@@ -429,7 +445,6 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
           children: [
             Switch(value: state.useSSHPrivateKey, onChanged: (value) {
               changeSwitch(useSSHPrivateKey: value);
-              _sshPasswordEditingController.clear();
             }),
             Text("Private Key")
           ],
@@ -464,7 +479,18 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
           ],
         ),
       ) : Container(),
-      Container(
+      state.useSSHPrivateKey ? Container(
+        margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        child: TextField(
+          controller: _sshPrivateKeyPasswordEditingController,
+          decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 0),
+              border: const OutlineInputBorder(),
+              labelText: "Private Key Password"
+          ),
+        ),
+      ) : Container(
         margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: TextField(
           controller: _sshPasswordEditingController,
@@ -472,7 +498,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
               contentPadding: const EdgeInsets.symmetric(
                   horizontal: 8, vertical: 0),
               border: const OutlineInputBorder(),
-              labelText: state.useSSHPrivateKey ? "Private Key Password" : "SSH Password"
+              labelText: "SSH Password"
           ),
         ),
       ),

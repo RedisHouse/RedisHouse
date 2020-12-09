@@ -12,36 +12,35 @@ class NewConnectionBloc extends BaseBloc<NewConnectionEvent, NewConnectionData> 
   Stream<NewConnectionData> mapEventToState(event) async* {
     if(event is NewConnectionChangedEvent) {
       yield state.rebuild((b) {
-        if(StringUtil.isNotBlank(event.redisName)) {
+        if(event.redisName != null) {
           b.redisName = event.redisName;
         }
-        if(StringUtil.isNotBlank(event.redisAddress)) {
+        if(event.redisAddress != null) {
           b.redisAddress = event.redisAddress;
         }
-        if(StringUtil.isNotBlank(event.redisPort)) {
+        if(event.redisPort != null) {
           b.redisPort = event.redisPort;
         }
-        if(StringUtil.isNotBlank(event.redisPassword)) {
+        if(event.redisPassword != null) {
           b.redisPassword = event.redisPassword;
         }
-        if(StringUtil.isNotBlank(event.sshAddress)) {
+        if(event.sshAddress != null) {
           b.sshAddress = event.sshAddress;
         }
-        if(StringUtil.isNotBlank(event.sshPort)) {
+        if(event.sshPort != null) {
           b.sshPort = event.sshPort;
         }
-        if(StringUtil.isNotBlank(event.sshUser)) {
+        if(event.sshUser != null) {
           b.sshUser = event.sshUser;
         }
-        if(StringUtil.isNotBlank(event.sshPrivateKey)) {
+        if(event.sshPassword != null) {
+          b.sshPassword = event.sshPassword;
+        }
+        if(event.sshPrivateKey != null) {
           b.sshPrivateKey = event.sshPrivateKey;
         }
-        if(StringUtil.isNotBlank(event.sshPassword)) {
-          if(state.useSSHPrivateKey) {
-            b.sshPrivateKeyPassword = event.sshPassword;
-          } else {
-            b.sshPassword = event.sshPassword;
-          }
+        if(event.sshPrivateKeyPassword != null) {
+          b.sshPrivateKeyPassword = event.sshPrivateKeyPassword;
         }
       });
     } else if(event is NewConnectionChangeSwitchEvent) {
@@ -60,19 +59,18 @@ class NewConnectionBloc extends BaseBloc<NewConnectionEvent, NewConnectionData> 
         }
         if(event.useSSHPrivateKey != null) {
           b.useSSHPrivateKey = event.useSSHPrivateKey;
-          if(event.useSSHPrivateKey) {
-            b.sshPassword = null;
-          } else {
-            b.sshPrivateKeyPassword = null;
-          }
         }
       });
+    } else if(event is ClearConnectionContentEvent) {
+      yield NewConnectionData((b) => b..useSSLTLS=false..useSSHTunnel=false..useSSHPrivateKey=false);
     }
   }
 
 }
 
 abstract class NewConnectionEvent {}
+
+class ClearConnectionContentEvent extends NewConnectionEvent{}
 
 class NewConnectionChangedEvent extends NewConnectionEvent {
   String redisName;
@@ -84,6 +82,7 @@ class NewConnectionChangedEvent extends NewConnectionEvent {
   String sshUser;
   String sshPassword;
   String sshPrivateKey;
+  String sshPrivateKeyPassword;
 
   NewConnectionChangedEvent({
     this.redisName,
@@ -95,6 +94,7 @@ class NewConnectionChangedEvent extends NewConnectionEvent {
     this.sshUser,
     this.sshPassword,
     this.sshPrivateKey,
+    this.sshPrivateKeyPassword,
   });
 }
 
