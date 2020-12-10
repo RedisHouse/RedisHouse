@@ -23,7 +23,8 @@ dependencies:
   # 错误捕获上报等操作
   catcher: ^0.3.22
   flutter_easyloading: ^2.2.1
-  split_view: ^1.0.1
+  # 需要改
+  # split_view: ^1.0.1
   hive: ^1.4.4+1
   hive_flutter: ^0.3.1
   flutter_simple_treeview: ^2.0.2

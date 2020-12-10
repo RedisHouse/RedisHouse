@@ -10,9 +10,9 @@ import 'package:flutter_simple_treeview/flutter_simple_treeview.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/ui/component/split_view.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
 import 'package:redis_house/ui/page/main_page/dialog/connection_new_dialog.dart';
-import 'package:split_view/split_view.dart';
 
 class MainPage extends StatefulWidget {
   @override
