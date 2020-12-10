@@ -10,7 +10,24 @@ import 'package:redis_house/generated/l10n.dart';
 import 'package:redis_house/router/application.dart';
 import 'package:redis_house/router/routers.dart';
 
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+const platform_channel_redis =
+    const MethodChannel('plugins.redishouse.com/redis');
+
 void main() async {
+
+   test('Test redis Plugin result', () async {
+    // Invoke a method on the method channel, specifying the concrete
+    // method to call via the String identifier.
+    final int result =
+        await platform_channel_redis.invokeMethod('ping');
+    
+    final String redisPingResult = '          -- redis ping result: $result % .';
+    print(redisPingResult);
+  });
+
   WidgetsFlutterBinding.ensureInitialized();
   // 初始化
   Application.doInit();
