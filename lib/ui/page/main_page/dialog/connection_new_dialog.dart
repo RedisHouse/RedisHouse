@@ -1,7 +1,10 @@
 
+import 'dart:io';
+
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pigment/pigment.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
@@ -12,7 +15,9 @@ import 'package:redis_house/util/string_util.dart';
 Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) => showDialog(
   context: context,
   barrierDismissible: false,
-  builder: (context) => SimpleDialog(
+  builder: (context) {
+    GlobalKey<_ConnectionInfoFormState> _connectionInfoKey = new GlobalKey<_ConnectionInfoFormState>();
+    return SimpleDialog(
     contentPadding: EdgeInsets.zero,
     children: <Widget>[
       Container(
@@ -28,7 +33,7 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
             ),
             Container(height: 0.2, color: Pigment.fromString("#FEFEFE"),),
             Expanded(child: Container(
-              child: _ConnectionInfoForm(),
+              child: _ConnectionInfoForm(_connectionInfoKey),
             )),
             Container(
               margin: const EdgeInsets.all(8),
@@ -88,8 +93,9 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          if(autoPop) Navigator.pop(context);
+                        onTap: () async {
+                          // if(autoPop) Navigator.pop(context);
+                          await _connectionInfoKey.currentState.doSave();
                         },
                         child: Center(child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
@@ -105,10 +111,12 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
         ),
       ),
     ],
-  )
+  );
+  }
 );
 
 class _ConnectionInfoForm extends StatefulWidget {
+  _ConnectionInfoForm(Key key) : super(key: key);
   @override
   State<StatefulWidget> createState() {
     return _ConnectionInfoFormState();
@@ -116,6 +124,8 @@ class _ConnectionInfoForm extends StatefulWidget {
 }
 
 class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInitMixin<_ConnectionInfoForm> {
+
+  GlobalKey<FormState> _formKey= new GlobalKey<FormState>();
 
   TextEditingController _redisNameEditingController;
   TextEditingController _redisAddressEditingController;
@@ -128,6 +138,10 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
   TextEditingController _sshPasswordEditingController;
   TextEditingController _sshPrivateKeyEditingController;
   TextEditingController _sshPrivateKeyPasswordEditingController;
+
+  bool hideRedisPassword = true;
+  bool hideSSHPassword = true;
+  bool hideSSHPrivateKeyPassword = true;
 
   @override
   void initState() {
@@ -276,7 +290,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     _sshPrivateKeyEditingController?.dispose();
     _sshPrivateKeyPasswordEditingController?.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -287,96 +301,138 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
             return true;
           },
           builder: (context, state) {
-            return Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                  child: TextField(
-                    controller: _redisNameEditingController,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
-                      border: const OutlineInputBorder(),
-                      labelText: S.of(context).connectionNameLabel,
+            return Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                    child: TextFormField(
+                      controller: _redisNameEditingController,
+                      maxLength: 32,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 0),
+                        border: const OutlineInputBorder(),
+                        labelText: "${S.of(context).connectionNameLabel}*",
+                      ),
+                      validator: (v) {
+                        if(StringUtil.isBlank(v)) {
+                          return "名称不能为空";
+                        }
+                        return null;
+                      },
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Container(
-                        margin: EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8.0),
-                        child: TextField(
-                          controller: _redisAddressEditingController,
-                          keyboardType: TextInputType.numberWithOptions(decimal: true),
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 0),
-                            border: const OutlineInputBorder(),
-                            labelText: S.of(context).connectionAddressLabel,
-                            hintText: "127.0.0.1",
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 8.0),
+                          child: TextFormField(
+                            controller: _redisAddressEditingController,
+                            keyboardType: TextInputType.numberWithOptions(decimal: true),
+                            maxLength: 255,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 0),
+                              border: const OutlineInputBorder(),
+                              labelText: "${S.of(context).connectionAddressLabel}*",
+                              hintText: "127.0.0.1",
+                            ),
+                            validator: (v) {
+                              if(StringUtil.isBlank(v)) {
+                                return "地址不能为空";
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        margin: EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8.0),
-                        child: TextField(
-                          controller: _redisPortEditingController,
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 0),
-                            border: const OutlineInputBorder(),
-                            labelText: S.of(context).connectionPortLabel,
-                            hintText: "6379",
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 8.0),
+                          child: TextFormField(
+                            controller: _redisPortEditingController,
+                            maxLength: 5,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 0),
+                              border: const OutlineInputBorder(),
+                              labelText: "${S.of(context).connectionPortLabel}*",
+                              hintText: "6379",
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(5),
+                              FilteringTextInputFormatter.singleLineFormatter,
+                            ],
+                            validator: (v) {
+                              if(StringUtil.isBlank(v)) {
+                                return "端口不能为空";
+                              }
+                              int port = int.tryParse(v);
+                              if(port == null || port <= 1 || port > 65535) {
+                                return "端口不合法";
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                  child: TextField(
-                    controller: _redisPasswordEditingController,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 0),
-                      border: const OutlineInputBorder(),
-                      labelText: S.of(context).connectionPasswordLabel
+                    ],
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                    child: TextFormField(
+                      controller: _redisPasswordEditingController,
+                      obscureText: hideRedisPassword,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                        suffixIcon: IconButton(
+                          icon: Icon(hideRedisPassword ? Icons.remove_red_eye_outlined : Icons.remove_red_eye_rounded),
+                          onPressed: () {
+                            setState(() {
+                              hideRedisPassword = !hideRedisPassword;
+                            });
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
+                        labelText: S.of(context).connectionPasswordLabel,
+                      ),
                     ),
                   ),
-                ),
-                Offstage(
-                  offstage: true, // 隐藏
-                  child: Container(
+                  Offstage(
+                    offstage: true, // 隐藏
+                    child: Container(
+                      child: Row(
+                        children: [
+                          Switch(value: state.useSSLTLS, onChanged: (value) {
+                            changeSwitch(useSSLTLS: value);
+                          }),
+                          Text("SSL / TLS")
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
                     child: Row(
                       children: [
-                        Switch(value: state.useSSLTLS, onChanged: (value) {
-                          changeSwitch(useSSLTLS: value);
+                        Switch(value: state.useSSHTunnel, onChanged: (value) {
+                          changeSwitch(useSSHTunnel: value);
                         }),
-                        Text("SSL / TLS")
+                        Text("SSH Tunnel")
                       ],
                     ),
                   ),
-                ),
-                Container(
-                  child: Row(
-                    children: [
-                      Switch(value: state.useSSHTunnel, onChanged: (value) {
-                        changeSwitch(useSSHTunnel: value);
-                      }),
-                      Text("SSH Tunnel")
-                    ],
-                  ),
-                ),
-                ...sshTunnelWidgets(state)
-              ],
+                  ...sshTunnelWidgets(state)
+                ],
+              ),
             );
           }
         ),
@@ -396,16 +452,23 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
             child: Container(
               margin: EdgeInsets.symmetric(
                   horizontal: 8.0, vertical: 8.0),
-              child: TextField(
+              child: TextFormField(
                 controller: _sshAddressEditingController,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
+                maxLength: 255,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 0),
                   border: const OutlineInputBorder(),
-                  labelText: "SSH Address",
+                  labelText: "SSH Address*",
                   hintText: "127.0.0.1",
                 ),
+                validator: (v) {
+                  if(StringUtil.isBlank(v)) {
+                    return "地址不能为空";
+                  }
+                  return null;
+                },
               ),
             ),
           ),
@@ -414,15 +477,31 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
             child: Container(
               margin: EdgeInsets.symmetric(
                   horizontal: 8.0, vertical: 8.0),
-              child: TextField(
+              child: TextFormField(
                 controller: _sshPortEditingController,
+                maxLength: 5,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 0),
                   border: const OutlineInputBorder(),
-                  labelText: "SSH Port",
+                  labelText: "SSH Port*",
                   hintText: "22",
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(5),
+                  FilteringTextInputFormatter.singleLineFormatter,
+                ],
+                validator: (v) {
+                  if(StringUtil.isBlank(v)) {
+                    return "端口不能为空";
+                  }
+                  int port = int.tryParse(v);
+                  if(port == null || port <= 1 || port > 65535) {
+                    return "端口不合法";
+                  }
+                  return null;
+                },
               ),
             ),
           ),
@@ -430,14 +509,21 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
       ),
       Container(
         margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: TextField(
+        child: TextFormField(
           controller: _sshUserEditingController,
+          maxLength: 32,
           decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
                   horizontal: 8, vertical: 0),
               border: const OutlineInputBorder(),
-              labelText: "SSH User"
+              labelText: "SSH User*"
           ),
+          validator: (v) {
+            if(StringUtil.isBlank(v)) {
+              return "用户名不能为空";
+            }
+            return null;
+          },
         ),
       ),
       Container(
@@ -454,24 +540,34 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
         margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: Stack(
           children: [
-            TextField(
+            TextFormField(
               enabled: false,
               controller: _sshPrivateKeyEditingController,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 8, vertical: 0),
                 border: const OutlineInputBorder(),
-                labelText: "Select Private Key",
+                labelText: "Select Private Key*",
               ),
+              validator: (v) {
+                if(StringUtil.isBlank(v)) {
+                  return "私钥文件不能为空";
+                }
+                return null;
+              },
             ),
             Positioned(
               right: 10,
-
               child: FlatButton(
                 color: Colors.lightBlue,
                 padding: EdgeInsets.zero,
-                onPressed: () {
-                  BotToast.showText(text: "选择文件");
+                onPressed: () async {
+                  const MethodChannel _channel = MethodChannel('miguelruivo.flutter.plugins.filepicker');
+                  var result = await _channel.invokeMethod("any", {
+                    'allowMultipleSelection': false,
+                  });
+                  print("选中文件：$result");
+                  _sshPrivateKeyEditingController.text = result;
                 },
                 child: Text("选择文件"),
               ),
@@ -481,28 +577,59 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
       ) : Container(),
       state.useSSHPrivateKey ? Container(
         margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: TextField(
+        child: TextFormField(
           controller: _sshPrivateKeyPasswordEditingController,
+          obscureText: hideSSHPrivateKeyPassword,
           decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 0),
-              border: const OutlineInputBorder(),
-              labelText: "Private Key Password"
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            suffixIcon: IconButton(
+              icon: Icon(hideSSHPrivateKeyPassword ? Icons.remove_red_eye_outlined : Icons.remove_red_eye_rounded),
+              onPressed: () {
+                setState(() {
+                  hideSSHPrivateKeyPassword = !hideSSHPrivateKeyPassword;
+                });
+              },
+            ),
+            border: const OutlineInputBorder(),
+            labelText: "Private Key Password",
           ),
         ),
       ) : Container(
         margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: TextField(
+        child: TextFormField(
           controller: _sshPasswordEditingController,
+          obscureText: hideSSHPassword,
           decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 0),
-              border: const OutlineInputBorder(),
-              labelText: "SSH Password"
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            suffixIcon: IconButton(
+              icon: Icon(hideSSHPassword ? Icons.remove_red_eye_outlined : Icons.remove_red_eye_rounded),
+              onPressed: () {
+                setState(() {
+                  hideSSHPassword = !hideSSHPassword;
+                });
+              },
+            ),
+            border: const OutlineInputBorder(),
+            labelText: "SSH Password",
           ),
         ),
       ),
     ];
+  }
+
+  Future<bool> doTest() {
+    BotToast.showText(text: "测试连接");
+
+    return Future.value(true);
+  }
+
+  Future<bool> doSave() {
+    if(_formKey.currentState.validate()) {
+      BotToast.showText(text: "表单验证通过");
+
+      return Future.value(true);
+    }
+    return Future.value(false);
   }
 
   void changeSwitch({
