@@ -18,6 +18,6 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
-	connected := true // Your platform-specific API
+	connected := 111 // Your platform-specific API
 	return connected, nil
 }
