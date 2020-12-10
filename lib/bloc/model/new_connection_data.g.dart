@@ -6,6 +6,172 @@ part of 'new_connection_data.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+Serializer<NewConnectionData> _$newConnectionDataSerializer =
+    new _$NewConnectionDataSerializer();
+
+class _$NewConnectionDataSerializer
+    implements StructuredSerializer<NewConnectionData> {
+  @override
+  final Iterable<Type> types = const [NewConnectionData, _$NewConnectionData];
+  @override
+  final String wireName = 'NewConnectionData';
+
+  @override
+  Iterable<Object> serialize(Serializers serializers, NewConnectionData object,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = <Object>[];
+    if (object.useSSLTLS != null) {
+      result
+        ..add('useSSLTLS')
+        ..add(serializers.serialize(object.useSSLTLS,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.useSSHTunnel != null) {
+      result
+        ..add('useSSHTunnel')
+        ..add(serializers.serialize(object.useSSHTunnel,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.useSSHPrivateKey != null) {
+      result
+        ..add('useSSHPrivateKey')
+        ..add(serializers.serialize(object.useSSHPrivateKey,
+            specifiedType: const FullType(bool)));
+    }
+    if (object.redisName != null) {
+      result
+        ..add('redisName')
+        ..add(serializers.serialize(object.redisName,
+            specifiedType: const FullType(String)));
+    }
+    if (object.redisAddress != null) {
+      result
+        ..add('redisAddress')
+        ..add(serializers.serialize(object.redisAddress,
+            specifiedType: const FullType(String)));
+    }
+    if (object.redisPort != null) {
+      result
+        ..add('redisPort')
+        ..add(serializers.serialize(object.redisPort,
+            specifiedType: const FullType(String)));
+    }
+    if (object.redisPassword != null) {
+      result
+        ..add('redisPassword')
+        ..add(serializers.serialize(object.redisPassword,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshAddress != null) {
+      result
+        ..add('sshAddress')
+        ..add(serializers.serialize(object.sshAddress,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshPort != null) {
+      result
+        ..add('sshPort')
+        ..add(serializers.serialize(object.sshPort,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshUser != null) {
+      result
+        ..add('sshUser')
+        ..add(serializers.serialize(object.sshUser,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshPassword != null) {
+      result
+        ..add('sshPassword')
+        ..add(serializers.serialize(object.sshPassword,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshPrivateKey != null) {
+      result
+        ..add('sshPrivateKey')
+        ..add(serializers.serialize(object.sshPrivateKey,
+            specifiedType: const FullType(String)));
+    }
+    if (object.sshPrivateKeyPassword != null) {
+      result
+        ..add('sshPrivateKeyPassword')
+        ..add(serializers.serialize(object.sshPrivateKeyPassword,
+            specifiedType: const FullType(String)));
+    }
+    return result;
+  }
+
+  @override
+  NewConnectionData deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new NewConnectionDataBuilder();
+
+    final iterator = serialized.iterator;
+    while (iterator.moveNext()) {
+      final key = iterator.current as String;
+      iterator.moveNext();
+      final dynamic value = iterator.current;
+      switch (key) {
+        case 'useSSLTLS':
+          result.useSSLTLS = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'useSSHTunnel':
+          result.useSSHTunnel = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'useSSHPrivateKey':
+          result.useSSHPrivateKey = serializers.deserialize(value,
+              specifiedType: const FullType(bool)) as bool;
+          break;
+        case 'redisName':
+          result.redisName = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'redisAddress':
+          result.redisAddress = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'redisPort':
+          result.redisPort = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'redisPassword':
+          result.redisPassword = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshAddress':
+          result.sshAddress = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshPort':
+          result.sshPort = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshUser':
+          result.sshUser = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshPassword':
+          result.sshPassword = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshPrivateKey':
+          result.sshPrivateKey = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+        case 'sshPrivateKeyPassword':
+          result.sshPrivateKeyPassword = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
+      }
+    }
+
+    return result.build();
+  }
+}
+
 class _$NewConnectionData extends NewConnectionData {
   @override
   final bool useSSLTLS;

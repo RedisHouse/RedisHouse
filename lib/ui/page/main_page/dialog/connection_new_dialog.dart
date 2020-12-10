@@ -1,15 +1,16 @@
 
-import 'dart:io';
-
+import 'dart:convert';
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:pigment/pigment.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
 import 'package:redis_house/generated/l10n.dart';
+import 'package:redis_house/plugin/file_picker/file_picker.dart';
 import 'package:redis_house/util/string_util.dart';
 
 Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) => showDialog(
@@ -94,8 +95,10 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () async {
-                          // if(autoPop) Navigator.pop(context);
-                          await _connectionInfoKey.currentState.doSave();
+                          bool saved = await _connectionInfoKey.currentState.doSave();
+                          if(saved) {
+                            Navigator.pop(context);
+                          }
                         },
                         child: Center(child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
@@ -562,10 +565,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
                 color: Colors.lightBlue,
                 padding: EdgeInsets.zero,
                 onPressed: () async {
-                  const MethodChannel _channel = MethodChannel('miguelruivo.flutter.plugins.filepicker');
-                  var result = await _channel.invokeMethod("any", {
-                    'allowMultipleSelection': false,
-                  });
+                  var result = await FilePicker.instance.pickFile();
                   print("选中文件：$result");
                   _sshPrivateKeyEditingController.text = result;
                 },
@@ -623,10 +623,14 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     return Future.value(true);
   }
 
-  Future<bool> doSave() {
+  Future<bool> doSave() async {
     if(_formKey.currentState.validate()) {
       BotToast.showText(text: "表单验证通过");
-
+      var newConnectionBloc =context.read<NewConnectionBloc>();
+      var newConnectionData = newConnectionBloc.state;
+      await Hive.box('connectionList').add(jsonEncode(newConnectionData.toJson()));
+      newConnectionBloc.add(ClearConnectionContentEvent());
+      newConnectionBloc.close();
       return Future.value(true);
     }
     return Future.value(false);

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 
 String redisHousePath() {
-  return join(homePath(), ".redishouse");
+  return join(homePath(), ".redishouse", "db");
 }
 
 String homePath() {

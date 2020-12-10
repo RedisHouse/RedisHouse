@@ -19,7 +19,7 @@ class Application {
   }
 
   static Future doAsyncInit() async {
-
+      await Hive.openBox("connectionList");
   }
 
 }

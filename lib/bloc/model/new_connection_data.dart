@@ -1,5 +1,7 @@
 
 import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'package:redis_house/model/serializers.dart';
 
 part 'new_connection_data.g.dart';
 
@@ -46,5 +48,12 @@ abstract class NewConnectionData implements Built<NewConnectionData, NewConnecti
 
   NewConnectionData._();
   factory NewConnectionData([updates(NewConnectionDataBuilder b)]) = _$NewConnectionData;
+  static Serializer<NewConnectionData> get serializer => _$newConnectionDataSerializer;
+  factory NewConnectionData.fromJson(Map<String, dynamic> json) {
+    return serializers.deserializeWith(NewConnectionData.serializer, json);
+  }
 
+  toJson() {
+    return serializers.serializeWith(NewConnectionData.serializer, this);
+  }
 }
