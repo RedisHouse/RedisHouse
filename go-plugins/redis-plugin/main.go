@@ -65,8 +65,14 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 
 func ping(arguments interface{}) (reply interface{}, err error) {
 	log.Println("InvokeMethod ping")
+
 	argsMap := arguments.(map[interface{}]interface{})
-	connection := connectionsMap[argsMap["id"].(string)]
+	connection := redis.NewClient(&redis.Options{
+		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
+		Password: argsMap["redisPassword"].(string), // no password set
+		DB:       0,  // use default DB
+	})
+	defer connection.Close()
 
 	return connection.Ping(ctx).Result()
 }
