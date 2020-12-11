@@ -97,7 +97,7 @@ func set(arguments interface{}) (reply interface{}, err error) {
 
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
-		return nil, errors.New("尚未连接！")
+		return false, errors.New("尚未连接！")
 	}
 
 	connection := connectionsMap[argsMap["id"].(string)]
