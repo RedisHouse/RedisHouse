@@ -43,6 +43,7 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel.HandleFunc("ping", ping)
 	p.channel.HandleFunc("get", get)
 	p.channel.HandleFunc("set", set)
+	p.channel.HandleFunc("do", do)
 	p.channel.HandleFunc("getError", getErrorFunc)
 	p.channel.CatchAllHandleFunc(catchAllTest)
 	return nil // no error
@@ -104,7 +105,7 @@ func set(arguments interface{}) (reply interface{}, err error) {
 	return true, nil
 }
 
-func Do(arguments interface{}) (reply interface{}, err error) {
+func do(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
 
