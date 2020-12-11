@@ -10,6 +10,7 @@ import 'package:flutter_simple_treeview/flutter_simple_treeview.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/ui/component/split_view.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
 import 'package:redis_house/ui/page/main_page/dialog/connection_new_dialog.dart';
@@ -28,7 +29,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
     return Scaffold(
       body: SplitView(
         viewMode: SplitViewMode.Horizontal,
-        initialWeight: 0.2,
+        initialWeight: 0.3,
         view1: Container(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,8 +73,21 @@ class _MainPageState extends BaseStatefulState<MainPage> {
             var connection = NewConnectionData.fromJson(jsonDecode(box.getAt(index)));
             return ListTile(
               title: Text(connection.redisName),
-              onTap: () {
-                BotToast.showText(text: "点击了 ${connection.redisName}");
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(icon: Icon(Icons.upload_rounded), onPressed: () async {
+                    await Redis.instance.set("name", "渣渣文文");
+                  }),
+                  IconButton(icon: Icon(Icons.get_app), onPressed: () async {
+                    String value = await Redis.instance.get("name");
+                    BotToast.showText(text: "name=$value");
+                  },),
+                ],
+              ),
+              onTap: () async {
+                bool pingResult = await Redis.instance.connectTo(connection.toJson());
+                BotToast.showText(text: "连接结果: $pingResult");
               },
             );
           },

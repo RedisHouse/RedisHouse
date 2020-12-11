@@ -20,6 +20,12 @@ class _$NewConnectionDataSerializer
   Iterable<Object> serialize(Serializers serializers, NewConnectionData object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[];
+    if (object.id != null) {
+      result
+        ..add('id')
+        ..add(serializers.serialize(object.id,
+            specifiedType: const FullType(String)));
+    }
     if (object.useSSLTLS != null) {
       result
         ..add('useSSLTLS')
@@ -113,6 +119,10 @@ class _$NewConnectionDataSerializer
       iterator.moveNext();
       final dynamic value = iterator.current;
       switch (key) {
+        case 'id':
+          result.id = serializers.deserialize(value,
+              specifiedType: const FullType(String)) as String;
+          break;
         case 'useSSLTLS':
           result.useSSLTLS = serializers.deserialize(value,
               specifiedType: const FullType(bool)) as bool;
@@ -174,6 +184,8 @@ class _$NewConnectionDataSerializer
 
 class _$NewConnectionData extends NewConnectionData {
   @override
+  final String id;
+  @override
   final bool useSSLTLS;
   @override
   final bool useSSHTunnel;
@@ -205,7 +217,8 @@ class _$NewConnectionData extends NewConnectionData {
       (new NewConnectionDataBuilder()..update(updates)).build();
 
   _$NewConnectionData._(
-      {this.useSSLTLS,
+      {this.id,
+      this.useSSLTLS,
       this.useSSHTunnel,
       this.useSSHPrivateKey,
       this.redisName,
@@ -232,6 +245,7 @@ class _$NewConnectionData extends NewConnectionData {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is NewConnectionData &&
+        id == other.id &&
         useSSLTLS == other.useSSLTLS &&
         useSSHTunnel == other.useSSHTunnel &&
         useSSHPrivateKey == other.useSSHPrivateKey &&
@@ -260,7 +274,9 @@ class _$NewConnectionData extends NewConnectionData {
                                     $jc(
                                         $jc(
                                             $jc(
-                                                $jc($jc(0, useSSLTLS.hashCode),
+                                                $jc(
+                                                    $jc($jc(0, id.hashCode),
+                                                        useSSLTLS.hashCode),
                                                     useSSHTunnel.hashCode),
                                                 useSSHPrivateKey.hashCode),
                                             redisName.hashCode),
@@ -278,6 +294,7 @@ class _$NewConnectionData extends NewConnectionData {
   @override
   String toString() {
     return (newBuiltValueToStringHelper('NewConnectionData')
+          ..add('id', id)
           ..add('useSSLTLS', useSSLTLS)
           ..add('useSSHTunnel', useSSHTunnel)
           ..add('useSSHPrivateKey', useSSHPrivateKey)
@@ -298,6 +315,10 @@ class _$NewConnectionData extends NewConnectionData {
 class NewConnectionDataBuilder
     implements Builder<NewConnectionData, NewConnectionDataBuilder> {
   _$NewConnectionData _$v;
+
+  String _id;
+  String get id => _$this._id;
+  set id(String id) => _$this._id = id;
 
   bool _useSSLTLS;
   bool get useSSLTLS => _$this._useSSLTLS;
@@ -359,6 +380,7 @@ class NewConnectionDataBuilder
 
   NewConnectionDataBuilder get _$this {
     if (_$v != null) {
+      _id = _$v.id;
       _useSSLTLS = _$v.useSSLTLS;
       _useSSHTunnel = _$v.useSSHTunnel;
       _useSSHPrivateKey = _$v.useSSHPrivateKey;
@@ -394,6 +416,7 @@ class NewConnectionDataBuilder
   _$NewConnectionData build() {
     final _$result = _$v ??
         new _$NewConnectionData._(
+            id: id,
             useSSLTLS: useSSLTLS,
             useSSHTunnel: useSSHTunnel,
             useSSHPrivateKey: useSSHPrivateKey,

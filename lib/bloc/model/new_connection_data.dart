@@ -8,6 +8,9 @@ part 'new_connection_data.g.dart';
 abstract class NewConnectionData implements Built<NewConnectionData, NewConnectionDataBuilder>  {
 
   @nullable
+  String get id;
+
+  @nullable
   bool get useSSLTLS;
 
   @nullable
