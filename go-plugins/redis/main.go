@@ -16,6 +16,24 @@ type RedisPlugin struct {
 
 var _ flutter.Plugin = &RedisPlugin{}
 
+type Connection struct {
+	id               int
+	name             string
+	useSSLTLS        bool
+	useSSHTunnel     bool
+	useSSHPrivateKey bool
+	redisName        string
+	redisAddress     string
+	redisPort        string
+	redisPassword    string
+	sshAddress       string
+	sshPort          string
+	sshUser          string
+	sshPrivateKey    string
+}
+
+var connectionsMap map[string]Connection = make(map[string]Connection)
+
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
 	p.channel.HandleFunc("ping", ping)
@@ -24,10 +42,14 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	return nil // no error
 }
 
+func connectTo(connection Connection) (reply interface{}, err error) {
+	log.Println("InvokeMethod connectTo -------", connection)
+	return "connectToReturn", nil
+}
+
 func ping(arguments interface{}) (reply interface{}, err error) {
 	log.Println("InvokeMethod ping")
-	connected := int32(55)
-	return connected, nil
+	return "PONG", nil
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {

@@ -23,7 +23,8 @@ void main() async {
   // 初始化-异步
   await Application.doAsyncInit();
 
-  var result = await platform_channel_redis.invokeMethod('ping', {});
+  var result = await platform_channel_redis
+      .invokeMethod('connectTo', {'id': 1, "name": "aaa"});
 
   print("aaaaa $result");
 
