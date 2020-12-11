@@ -1,3 +1,6 @@
+github.com/RedisHouse/RedisHouse v0.0.0-20201211055452-25b81c4709c6 h1:veDq1iRgHC2VOC26XJfB5A72tLXiKFDlFJFF2/9optA=
+github.com/RedisHouse/RedisHouse/go-plugins/redis v0.0.0-20201211055452-25b81c4709c6 h1:BtKT4gUHuDkHUw9/5QFN+g9DLk5aPq7eSEm2BuRjgT4=
+github.com/RedisHouse/RedisHouse/go-plugins/redis v0.0.0-20201211055452-25b81c4709c6/go.mod h1:hSzeNvHivxag4aqy5CHEY2toIz0pFzV9AkiVaroH/7U=
 github.com/Xuanwo/go-locale v0.3.0 h1:clHbJN2GT4xGZ8BqcIJr42Yfoe06iYzI36LIxBnQ6DY=
 github.com/Xuanwo/go-locale v0.3.0/go.mod h1:6qbT9M726OJgyiGZro2YwPmx63wQzlH+VvtjJWQoftw=
 github.com/Xuanwo/go-locale v1.0.0 h1:oqC32Kyiu2XZq+fxtwEg0mWiv9WyDhyHu+sT5cDkgME=

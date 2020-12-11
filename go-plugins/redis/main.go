@@ -36,13 +36,15 @@ var connectionsMap map[string]Connection = make(map[string]Connection)
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
+	p.channel.HandleFunc("connectTo", connectTo)
 	p.channel.HandleFunc("ping", ping)
 	p.channel.HandleFunc("getError", getErrorFunc)
 	p.channel.CatchAllHandleFunc(catchAllTest)
 	return nil // no error
 }
 
-func connectTo(connection Connection) (reply interface{}, err error) {
+func connectTo(arguments interface{}) (reply interface{}, err error) {
+	connection := arguments.(Connection)
 	log.Println("InvokeMethod connectTo -------", connection)
 	return "connectToReturn", nil
 }
