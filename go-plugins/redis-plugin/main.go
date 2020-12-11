@@ -127,15 +127,20 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	return connection.Do(ctx, commands...).Result()
 }
 
-func close(arguments interface{}) (err error) {
+func close(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
-		return errors.New("尚未连接！")
+		return false, errors.New("尚未连接！")
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
-	return connection.Close()
+	err = connection.Close()
+
+	if err != nil {
+		return false, err
+	} 
+	return true, nil
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
