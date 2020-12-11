@@ -117,9 +117,9 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
 
-	strs := strings.Fields(argsMap["command"].(string))
-	commands := make([]interface{}, len(strs))
-	for i, v := range strs {
+	strFields := strings.Fields(argsMap["command"].(string))
+	commands := make([]interface{}, len(strFields))
+	for i, v := range strFields {
 		commands[i] = v
 	}
 
