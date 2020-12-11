@@ -3,11 +3,12 @@ package redis_plugin
 import (
 	"context"
 	"errors"
+	"strings"
+	"time"
+
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
 	"github.com/go-redis/redis/v8"
-	"strings"
-	"time"
 )
 
 const channelName = "plugins.redishouse.com/redis-plugin"
@@ -116,16 +117,10 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
 
-	strs := strings.Split(argsMap["command"].(string), " ")
-
-	var commands []interface{}
-	for i := range strs {
-		str := strs[i]
-		str = strings.ReplaceAll(str, " ", "")
-		if str == "" {
-			continue
-		}
-		commands = append(commands, str)
+	strs := strings.Fields(argsMap["command"].(string))
+	commands := make([]interface{}, len(strs))
+	for i, v := range strs {
+		commands[i] = v
 	}
 
 	return connection.Do(ctx, commands...).Result()
