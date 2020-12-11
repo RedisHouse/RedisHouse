@@ -39,7 +39,7 @@ class Redis {
   }
 
 
-  Future<String> execute(String command) {
+  Future execute(String command) {
     return _channel.invokeMethod("do", {
       "id": "1",
       "command": command

@@ -84,7 +84,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                     BotToast.showText(text: "name=$value");
                   },),
                   IconButton(icon: Icon(Icons.ac_unit), onPressed: () async {
-                    String value = await Redis.instance.execute("CONFIG GET databases");
+                    var value = await Redis.instance.execute("CONFIG GET databases");
                     BotToast.showText(text: "$value");
                   },),
                 ],
