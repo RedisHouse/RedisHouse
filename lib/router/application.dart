@@ -6,7 +6,6 @@ import 'package:redis_house/util/path_util.dart';
 import 'routers.dart';
 
 class Application {
-
   static FluroRouter router;
 
   static void doInit() {
@@ -19,7 +18,6 @@ class Application {
   }
 
   static Future doAsyncInit() async {
-      await Hive.openBox("connectionList");
+    await Hive.openBox("connectionList");
   }
-
 }

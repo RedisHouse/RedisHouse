@@ -16,18 +16,17 @@ const platform_channel_redis =
     const MethodChannel('plugins.redishouse.com/redis');
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
-
-  final int result =
-      await platform_channel_redis.invokeMethod('ping');
-  final String redisPingResult = '----------------- redis ping result: $result % .';
-  print(redisPingResult);
 
   // 初始化
   Application.doInit();
   // 初始化-异步
   await Application.doAsyncInit();
+
+  var result = await platform_channel_redis.invokeMethod('ping', {});
+
+  print("aaaaa $result");
+
   // 全局异常捕获
   // CatcherOptions debugOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
   // CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
@@ -42,9 +41,12 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => NewConnectionBloc(context, NewConnectionData((b) =>
-            b..useSSLTLS=false..useSSHTunnel=false..useSSHPrivateKey=false
-          )),
+          create: (context) => NewConnectionBloc(
+              context,
+              NewConnectionData((b) => b
+                ..useSSLTLS = false
+                ..useSSHTunnel = false
+                ..useSSHPrivateKey = false)),
         ),
       ],
       child: MaterialApp(
@@ -66,24 +68,14 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(0XFF14172A),
           brightness: Brightness.dark,
           textTheme: TextTheme(
-            caption: TextStyle(
-              color: Colors.white
-            ),
-            headline1: TextStyle(
-              color: Colors.white
-            ),
+            caption: TextStyle(color: Colors.white),
+            headline1: TextStyle(color: Colors.white),
             // ListView 中的 ListTile.title
-            subtitle1: TextStyle(
-              color: Colors.white
-            ),
+            subtitle1: TextStyle(color: Colors.white),
             // Drawer 中的 ListTile.title
-            bodyText1: TextStyle(
-              color: Colors.white
-            ),
+            bodyText1: TextStyle(color: Colors.white),
           ),
-          iconTheme: IconThemeData(
-              color: Colors.white
-          ),
+          iconTheme: IconThemeData(color: Colors.white),
         ),
       ),
     );
