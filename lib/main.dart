@@ -13,7 +13,7 @@ import 'package:redis_house/router/routers.dart';
 import 'package:flutter/services.dart';
 
 const platform_channel_redis =
-    const MethodChannel('plugins.redishouse.com/redis');
+    const MethodChannel('plugins.redishouse.com/redis-plugin');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

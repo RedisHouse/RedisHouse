@@ -1,14 +1,15 @@
-package redis
+package redis_plugin
 
 import (
 	"errors"
 	"log"
-
+	"context"
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
+	"github.com/go-redis/redis/v8"
 )
 
-const channelName = "plugins.redishouse.com/redis"
+const channelName = "plugins.redishouse.com/redis-plugin"
 
 type RedisPlugin struct {
 	channel *plugin.MethodChannel
@@ -17,7 +18,7 @@ type RedisPlugin struct {
 var _ flutter.Plugin = &RedisPlugin{}
 
 type Connection struct {
-	id               int
+	id               string
 	name             string
 	useSSLTLS        bool
 	useSSHTunnel     bool
@@ -32,7 +33,8 @@ type Connection struct {
 	sshPrivateKey    string
 }
 
-var connectionsMap map[string]Connection = make(map[string]Connection)
+var connectionsMap map[string]*redis.Client = make(map[string]*redis.Client)
+var ctx = context.Background()
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
@@ -44,14 +46,29 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 }
 
 func connectTo(arguments interface{}) (reply interface{}, err error) {
-	connection := arguments.(Connection)
-	log.Println("InvokeMethod connectTo -------", connection)
-	return "connectToReturn", nil
+	argsMap := arguments.(map[interface{}]interface{})
+	log.Println("InvokeMethod connectTo -------", argsMap["id"])
+
+	_, ok := connectionsMap[argsMap["id"].(string)]
+	if (ok) {
+		return true, nil
+	}
+
+	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&redis.Options{
+		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
+		Password: argsMap["redisPassword"].(string), // no password set
+		DB:       0,  // use default DB
+	})
+
+	return true, nil
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
 	log.Println("InvokeMethod ping")
-	return "PONG", nil
+	argsMap := arguments.(map[interface{}]interface{})
+	connection := connectionsMap[argsMap["id"].(string)]
+
+	return connection.Ping(ctx).Result()
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
