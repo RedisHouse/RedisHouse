@@ -46,6 +46,7 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel.HandleFunc("get", get)
 	p.channel.HandleFunc("set", set)
 	p.channel.HandleFunc("do", do)
+	p.channel.HandleFunc("close", close)
 	p.channel.HandleFunc("getError", getErrorFunc)
 	p.channel.CatchAllHandleFunc(catchAllTest)
 	return nil // no error
@@ -124,6 +125,17 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	return connection.Do(ctx, commands...).Result()
+}
+
+func close(arguments interface{}) (err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+	_, ok := connectionsMap[argsMap["id"].(string)]
+	if !ok {
+		return errors.New("尚未连接！")
+	}
+	connection := connectionsMap[argsMap["id"].(string)]
+	return connection.Close()
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
