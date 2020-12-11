@@ -10,11 +10,6 @@ import 'package:redis_house/generated/l10n.dart';
 import 'package:redis_house/router/application.dart';
 import 'package:redis_house/router/routers.dart';
 
-import 'package:flutter/services.dart';
-
-const platform_channel_redis =
-    const MethodChannel('plugins.redishouse.com/redis-plugin');
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,11 +17,6 @@ void main() async {
   Application.doInit();
   // 初始化-异步
   await Application.doAsyncInit();
-
-  var result = await platform_channel_redis
-      .invokeMethod('connectTo', {'id': 1, "name": "aaa"});
-
-  print("aaaaa $result");
 
   // 全局异常捕获
   // CatcherOptions debugOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()]);
