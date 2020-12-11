@@ -1,12 +1,13 @@
 package redis_plugin
 
 import (
-	"errors"
-	"log"
 	"context"
+	"errors"
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
 	"github.com/go-redis/redis/v8"
+	"log"
+	"time"
 )
 
 const channelName = "plugins.redishouse.com/redis-plugin"
@@ -50,14 +51,14 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 	log.Println("InvokeMethod connectTo -------", argsMap["id"])
 
 	_, ok := connectionsMap[argsMap["id"].(string)]
-	if (ok) {
+	if ok {
 		return true, nil
 	}
 
 	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&redis.Options{
 		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
 		Password: argsMap["redisPassword"].(string), // no password set
-		DB:       0,  // use default DB
+		DB:       0,                                 // use default DB
 	})
 
 	return true, nil
@@ -70,11 +71,41 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 	connection := redis.NewClient(&redis.Options{
 		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
 		Password: argsMap["redisPassword"].(string), // no password set
-		DB:       0,  // use default DB
+		DB:       0,                                 // use default DB
 	})
 	defer connection.Close()
 
 	return connection.Ping(ctx).Result()
+}
+
+func get(arguments interface{}) (reply interface{}, err error) {
+	argsMap := arguments.(map[interface{}]interface{})
+	log.Println("InvokeMethod connectTo -------", argsMap["id"])
+
+	_, ok := connectionsMap[argsMap["id"].(string)]
+	if !ok {
+		return nil, errors.New("尚未连接！")
+	}
+
+	connection := connectionsMap[argsMap["id"].(string)]
+	return connection.Get(ctx, argsMap["key"].(string)).Result()
+}
+
+func set(arguments interface{}) (reply interface{}, err error) {
+	argsMap := arguments.(map[interface{}]interface{})
+	log.Println("InvokeMethod connectTo -------", argsMap["id"])
+
+	_, ok := connectionsMap[argsMap["id"].(string)]
+	if !ok {
+		return nil, errors.New("尚未连接！")
+	}
+
+	connection := connectionsMap[argsMap["id"].(string)]
+	err = connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), argsMap["expiration"].(time.Duration)).Err()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
