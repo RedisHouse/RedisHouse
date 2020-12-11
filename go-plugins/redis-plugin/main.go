@@ -103,7 +103,7 @@ func set(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	connection := connectionsMap[argsMap["id"].(string)]
-	err = connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), argsMap["expiration"].(time.Duration)).Err()
+	err = connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32))).Err()
 	if err != nil {
 		return false, err
 	}
