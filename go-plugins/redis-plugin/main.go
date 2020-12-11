@@ -114,7 +114,8 @@ func do(arguments interface{}) (reply interface{}, err error) {
 		return false, errors.New("尚未连接！")
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
-	return connection.Do(ctx, argsMap["command"]).Result()
+
+	return connection.Do(ctx, "CONFIG", "GET", "databases").Result()
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
