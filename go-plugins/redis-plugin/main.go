@@ -57,15 +57,15 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if ok {
-		return true, nil
+		return
 	}
 
 	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&redis.Options{
 		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
-		Password: argsMap["redisPassword"].(string), // no password set
-		DB:       0,                                 // use default DB
+		Password: argsMap["redisPassword"].(string),
+		DB:       0,
 	})
-	return true, nil
+	return
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
@@ -97,15 +97,11 @@ func set(arguments interface{}) (reply interface{}, err error) {
 	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
-		return false, errors.New("尚未连接！")
+		return nil, errors.New("尚未连接！")
 	}
 
 	connection := connectionsMap[argsMap["id"].(string)]
-	err = connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32))).Err()
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return nil, connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32))).Err()
 }
 
 func do(arguments interface{}) (reply interface{}, err error) {
@@ -132,15 +128,11 @@ func close(arguments interface{}) (reply interface{}, err error) {
 	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
-		return false, errors.New("尚未连接！")
+		return nil, errors.New("尚未连接！")
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
-	err = connection.Close()
+	return nil, connection.Close()
 
-	if err != nil {
-		return false, err
-	} 
-	return true, nil
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {

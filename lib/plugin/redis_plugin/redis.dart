@@ -17,12 +17,12 @@ class Redis {
     });
   }
 
-  Future<bool> connectTo(Map connectionInfo) {
+  Future connectTo(Map connectionInfo) {
     connectionInfo["id"] = "1";
     return _channel.invokeMethod("connectTo", connectionInfo);
   }
 
-  Future<bool> set(String key, String value) {
+  Future set(String key, String value) {
     return _channel.invokeMethod("set", {
       "id": "1",
       "key": key,
