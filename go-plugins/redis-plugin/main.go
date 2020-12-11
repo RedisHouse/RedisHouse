@@ -6,7 +6,6 @@ import (
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
 	"github.com/go-redis/redis/v8"
-	"log"
 	"time"
 )
 
@@ -38,6 +37,7 @@ var connectionsMap map[string]*redis.Client = make(map[string]*redis.Client)
 var ctx = context.Background()
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
+
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
 	p.channel.HandleFunc("connectTo", connectTo)
 	p.channel.HandleFunc("ping", ping)
@@ -49,9 +49,8 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 }
 
 func connectTo(arguments interface{}) (reply interface{}, err error) {
-	argsMap := arguments.(map[interface{}]interface{})
-	log.Println("InvokeMethod connectTo -------", argsMap["id"])
 
+	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if ok {
 		return true, nil
@@ -62,12 +61,10 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 		Password: argsMap["redisPassword"].(string), // no password set
 		DB:       0,                                 // use default DB
 	})
-
 	return true, nil
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
-	log.Println("InvokeMethod ping")
 
 	argsMap := arguments.(map[interface{}]interface{})
 	connection := redis.NewClient(&redis.Options{
@@ -76,14 +73,12 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 		DB:       0,                                 // use default DB
 	})
 	defer connection.Close()
-
 	return connection.Ping(ctx).Result()
 }
 
 func get(arguments interface{}) (reply interface{}, err error) {
-	argsMap := arguments.(map[interface{}]interface{})
-	log.Println("InvokeMethod connectTo -------", argsMap["id"])
 
+	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
 		return nil, errors.New("尚未连接！")
@@ -94,9 +89,8 @@ func get(arguments interface{}) (reply interface{}, err error) {
 }
 
 func set(arguments interface{}) (reply interface{}, err error) {
-	argsMap := arguments.(map[interface{}]interface{})
-	log.Println("InvokeMethod connectTo -------", argsMap["id"])
 
+	argsMap := arguments.(map[interface{}]interface{})
 	_, ok := connectionsMap[argsMap["id"].(string)]
 	if !ok {
 		return false, errors.New("尚未连接！")
@@ -108,6 +102,18 @@ func set(arguments interface{}) (reply interface{}, err error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func Do(arguments interface{}) (reply interface{}, err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+
+	_, ok := connectionsMap[argsMap["id"].(string)]
+	if !ok {
+		return false, errors.New("尚未连接！")
+	}
+	connection := connectionsMap[argsMap["id"].(string)]
+	return connection.Do(ctx, argsMap["command"]).Result()
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
