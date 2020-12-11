@@ -6,6 +6,7 @@ import (
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
 	"github.com/go-redis/redis/v8"
+	"strings"
 	"time"
 )
 
@@ -115,7 +116,19 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
 
-	return connection.Do(ctx, "CONFIG", "GET", "databases").Result()
+	strs := strings.Split(argsMap["command"].(string), " ")
+
+	var commands []interface{}
+	for i := range strs {
+		str := strs[i]
+		str = strings.ReplaceAll(str, " ", "")
+		if str == "" {
+			continue
+		}
+		commands = append(commands, str)
+	}
+
+	return connection.Do(ctx, commands...).Result()
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
