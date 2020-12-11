@@ -13,11 +13,16 @@ var _ flutter.Plugin = &RedisPlugin{}
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	channel := plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
-	channel.HandleFunc("ping", ping)
+	// channel.HandleFunc("ping", ping)
+	channel.HandleFunc("ping", p.ping)
 	return nil // no error
 }
 
-func ping(arguments interface{}) (reply interface{}, err error) {
-	connected := 111 // Your platform-specific API
-	return connected, nil
+func (p *RedisPlugin) ping(arguments interface{}) (reply interface{}, err error) {
+	return "connected", nil
 }
+
+//func ping(arguments interface{}) (reply interface{}, err error) {
+//	//connected := 111 // Your platform-specific API
+//	return "connected", nil
+//}
