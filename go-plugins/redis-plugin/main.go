@@ -41,6 +41,8 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
 	p.channel.HandleFunc("connectTo", connectTo)
 	p.channel.HandleFunc("ping", ping)
+	p.channel.HandleFunc("get", get)
+	p.channel.HandleFunc("set", set)
 	p.channel.HandleFunc("getError", getErrorFunc)
 	p.channel.CatchAllHandleFunc(catchAllTest)
 	return nil // no error
