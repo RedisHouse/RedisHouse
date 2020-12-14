@@ -11,7 +11,9 @@ import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
 import 'package:redis_house/generated/l10n.dart';
 import 'package:redis_house/plugin/file_picker/file_picker.dart';
+import 'package:redis_house/router/application.dart';
 import 'package:redis_house/util/string_util.dart';
+import 'package:sembast/sembast.dart';
 
 Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) => showDialog(
   context: context,
@@ -629,6 +631,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
       var newConnectionBloc =context.read<NewConnectionBloc>();
       var newConnectionData = newConnectionBloc.state;
       await Hive.box('connectionList').add(jsonEncode(newConnectionData.toJson()));
+      await intMapStoreFactory.store("t_connection").add(Application.db, newConnectionData.toJson());
       newConnectionBloc.add(ClearConnectionContentEvent());
       newConnectionBloc.close();
       return Future.value(true);
