@@ -121,12 +121,15 @@ jobs:
       - name: Install hover
         run: go get -u -a github.com/go-flutter-desktop/hover
 
-      - name: Install wix311
+      - name: Download wix311
         run: ｜
           wget https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe
-          wix311.exe /install /quiet /norestart
         shell: bash
-    
+      
+      - name: Install wix311
+        run: ｜
+          wix311.exe /install /quiet /norestart
+
       - name: build windows
         run: |
           hover build windows-msi
