@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-darwin:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,12 +36,6 @@ jobs:
           go env -w GO111MODULE=on
           go env
           go version
-
-      - name: install darling
-        run: |
-          sudo add-apt-repository ppa:thopiekar/darling
-          sudo apt-get update
-          sudo apt-get install darling
           
       - name: Install dependencies
         run: flutter pub get
@@ -49,6 +43,6 @@ jobs:
       - name: Install hover
         run: go get -u -a github.com/go-flutter-desktop/hover
     
-      - name: build darwin-bundle
-        run: hover build darwin-bundle
+      - name: build linux
+        run: hover build linux
 
