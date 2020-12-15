@@ -123,8 +123,7 @@ jobs:
 
       - name: Download wix311
         run: ｜
-          wget https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe
-        shell: bash
+          certutil.exe -urlcache -split -f https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe wix311.exe
       
       - name: Install wix311
         run: ｜
