@@ -19,10 +19,9 @@ jobs:
       - name: Print flutter SDK version
         run: flutter --version
      
-      # libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev
-      - name: Install xorg-dev 
+      - name: Install ibx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
         run: |
-          sudo apt install -y xorg-dev
+          sudo apt install -y ibx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
        
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
