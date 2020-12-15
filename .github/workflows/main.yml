@@ -52,6 +52,7 @@ jobs:
       - name: build linux
         run: |
           hover build linux-appimage
+          apt install -y tree
           tree ./go/build/outputs/
 
   build-darwin:
