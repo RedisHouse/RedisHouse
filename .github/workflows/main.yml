@@ -5,6 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
+
   build-linux:
     runs-on: ubuntu-latest
 
@@ -148,3 +149,18 @@ jobs:
       - name: build windows
         run: |
           hover build windows-msi
+
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: Redis_House-1.0.0-x86_64.AppImage
+          path: ./
+       
+      - name: list artifacts
+        run: ｜
+          sudo apt install -y tree
+          tree
