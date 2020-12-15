@@ -39,7 +39,7 @@ jobs:
 
       - name: install darling
         run: |
-          apt-get install darling
+          sudo apt-get install -y darling
           
       - name: Install dependencies
         run: flutter pub get
