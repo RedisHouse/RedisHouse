@@ -106,7 +106,6 @@ jobs:
           path: ./go/build/outputs/darwin-bundle-release/Redis\ House\ 1.0.0.app
           retention-days: 5
 
-
   build-windows:
     runs-on: windows-latest
 
@@ -154,13 +153,18 @@ jobs:
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: ['build-linux', 'build-darwin']
+    needs: ['build-linux'] #['build-linux', 'build-darwin']
     steps:
       - uses: actions/download-artifact@v2
         with:
           name: Redis_House-1.0.0-x86_64.AppImage
           path: ./
        
+      - uses: actions/download-artifact@v2
+        with:
+          name: Redis\ House\ 1.0.0.app
+          path: ./
+
       - name: list artifacts
         run: ｜
           sudo apt install -y tree
