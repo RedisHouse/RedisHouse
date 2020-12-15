@@ -39,7 +39,9 @@ jobs:
 
       - name: install darling
         run: |
-          sudo apt-get install -y darling
+          sudo add-apt-repository ppa:thopiekar/darling
+          sudo apt-get update
+          sudo apt-get install darling
           
       - name: Install dependencies
         run: flutter pub get
