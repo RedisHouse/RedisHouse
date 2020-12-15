@@ -88,6 +88,14 @@ jobs:
       - name: build darwin
         run: |
           hover build darwin-bundle
+      
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Redis\ House\ 1.0.0.app
+          path: ./go/build/outputs/darwin-bundle-release/Redis\ House\ 1.0.0.app
+          retention-days: 5
+
 
   build-windows:
     runs-on: windows-latest
