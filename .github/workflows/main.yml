@@ -16,6 +16,9 @@ jobs:
         with:
           version: 1.22.4
 
+      - name: Print flutter SDK version
+        run: flutter --version
+        
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
         with:
@@ -27,10 +30,18 @@ jobs:
           go env -w GO111MODULE=on
           go env
           go version
-  
-      - name: Print flutter SDK version
-        run: flutter --version
 
       - name: Install dependencies
         run: flutter pub get
-
+      
+      - name: Install dependencies
+        run: go get -u -a github.com/go-flutter-desktop/hover
+    
+      - name: build linux
+        run: hover build linux
+    
+      - name: build darwin
+        run: hover build darwin
+        
+      - name: build windows
+        run: hover build windows
