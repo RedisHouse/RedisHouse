@@ -165,7 +165,7 @@ jobs:
       #     path: ./
 
       - name: list artifacts
-        run: ｜
+        run: |
           sudo apt install -y tree
           tree
       
