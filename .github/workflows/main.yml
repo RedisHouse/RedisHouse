@@ -149,7 +149,6 @@ jobs:
         run: |
           hover build windows-msi
 
-
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
