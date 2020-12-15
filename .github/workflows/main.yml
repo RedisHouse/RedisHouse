@@ -52,6 +52,7 @@ jobs:
       - name: build linux
         run: |
           hover build linux-appimage
+          tree ./go/build/outputs/
 
   build-darwin:
     runs-on: macos-11.0
