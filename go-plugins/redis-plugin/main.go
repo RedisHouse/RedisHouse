@@ -60,22 +60,33 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 		return
 	}
 
-	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&redis.Options{
-		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
-		Password: argsMap["redisPassword"].(string),
-		DB:       0,
-	})
+	option := redis.Options{
+		Addr: argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
+		DB:   0, // use default DB
+	}
+
+	if _, ok := argsMap["redisPassword"]; ok {
+		option.Password = argsMap["redisPassword"].(string)
+	}
+
+	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&option)
 	return
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	connection := redis.NewClient(&redis.Options{
-		Addr:     argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
-		Password: argsMap["redisPassword"].(string), // no password set
-		DB:       0,                                 // use default DB
-	})
+	option := redis.Options{
+		Addr: argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
+		DB:   0, // use default DB
+	}
+
+	if _, ok := argsMap["redisPassword"]; ok {
+		option.Password = argsMap["redisPassword"].(string)
+	}
+
+	connection := redis.NewClient(&option)
+
 	defer connection.Close()
 	return connection.Ping(ctx).Result()
 }
