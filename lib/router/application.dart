@@ -25,6 +25,5 @@ class Application {
 
   static Future doAsyncInit() async {
     db = await databaseFactoryIo.openDatabase(join(redisHousePath(), "sembast", "sembast.db"));
-    await Hive.openBox("connectionList");
   }
 }

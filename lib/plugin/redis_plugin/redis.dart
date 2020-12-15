@@ -18,30 +18,29 @@ class Redis {
   }
 
   Future connectTo(Map connectionInfo) {
-    connectionInfo["id"] = "1";
     return _channel.invokeMethod("connectTo", connectionInfo);
   }
 
-  Future set(String key, String value) {
+  Future set(String connectionId, String key, String value) {
     return _channel.invokeMethod("set", {
-      "id": "1",
+      "id": connectionId,
       "key": key,
       "value": value,
       "expiration": 0
     });
   }
 
-  Future<String> get(String key) {
+  Future<String> get(String connectionId, String key) {
     return _channel.invokeMethod("get", {
-      "id": "1",
+      "id": connectionId,
       "key": key
     });
   }
 
 
-  Future execute(String command) {
+  Future execute(String connectionId, String command) {
     return _channel.invokeMethod("do", {
-      "id": "1",
+      "id": connectionId,
       "command": command
     });
   }

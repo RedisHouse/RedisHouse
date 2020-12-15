@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/base/base_bloc.dart';
-import 'package:redis_house/util/string_util.dart';
 
 class NewConnectionBloc extends BaseBloc<NewConnectionEvent, NewConnectionData> {
 

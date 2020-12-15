@@ -11,9 +11,12 @@ import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
 import 'package:redis_house/generated/l10n.dart';
 import 'package:redis_house/plugin/file_picker/file_picker.dart';
+import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/router/application.dart';
 import 'package:redis_house/util/string_util.dart';
 import 'package:sembast/sembast.dart';
+import 'package:uuid/uuid.dart';
+import 'package:uuid/uuid_util.dart';
 
 Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) => showDialog(
   context: context,
@@ -47,8 +50,8 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-
+                        onTap: () async {
+                          await _connectionInfoKey.currentState.doTest();
                         },
                         child: Center(child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
@@ -619,21 +622,28 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     ];
   }
 
-  Future<bool> doTest() {
-    BotToast.showText(text: "测试连接");
-
-    return Future.value(true);
+  Future doTest() async {
+    if(_formKey.currentState.validate()) {
+      var connectionInfo = context.read<NewConnectionBloc>().state;
+      bool success = await Redis.instance.ping(connectionInfo.toJson())  ;
+      if(success) {
+        BotToast.showText(text: "连接成功。");
+      } else {
+        BotToast.showText(text: "连接失败！");
+      }
+    }
   }
 
   Future<bool> doSave() async {
     if(_formKey.currentState.validate()) {
-      BotToast.showText(text: "表单验证通过");
       var newConnectionBloc =context.read<NewConnectionBloc>();
       var newConnectionData = newConnectionBloc.state;
-      await Hive.box('connectionList').add(jsonEncode(newConnectionData.toJson()));
+      newConnectionData = newConnectionData.rebuild((b) => b..id = Uuid().v1());
       await intMapStoreFactory.store("t_connection").add(Application.db, newConnectionData.toJson());
       newConnectionBloc.add(ClearConnectionContentEvent());
       newConnectionBloc.close();
+
+      BotToast.showText(text: "已保存。");
       return Future.value(true);
     }
     return Future.value(false);

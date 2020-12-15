@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:redis_house/bloc/main_page_bloc.dart';
+import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
 import 'package:redis_house/generated/l10n.dart';
@@ -32,13 +34,15 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => NewConnectionBloc(
-              context,
+          create: (context) => NewConnectionBloc(context,
               NewConnectionData((b) => b
                 ..useSSLTLS = false
                 ..useSSHTunnel = false
-                ..useSSHPrivateKey = false)),
+                ..useSSHPrivateKey = false)
+          ),
         ),
+        BlocProvider(
+          create: (context) => MainPageBloc(context, MainPageData((b) => b)),),
       ],
       child: MaterialApp(
         title: 'Redis House',
