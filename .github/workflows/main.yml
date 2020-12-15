@@ -19,9 +19,9 @@ jobs:
       - name: Print flutter SDK version
         run: flutter --version
        
-      - name: Install libx11-dev
+      - name: Install libx11-dev libxcursor-dev
         run: |
-          sudo apt install -y libx11-dev
+          sudo apt install -y libx11-dev libxcursor-dev
        
       - name: Setup Go environment
         uses: actions/setup-go@v2.1.3
