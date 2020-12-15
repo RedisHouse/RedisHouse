@@ -46,3 +46,37 @@ jobs:
       - name: build linux
         run: hover build linux
 
+  build-darwin:
+    runs-on: macos-11.0
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Flutter
+        uses: britannio/action-install-flutter@v0.4
+        with:
+          version: 1.22.4
+
+      - name: Print flutter SDK version
+        run: flutter --version
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
+        with:
+          go-version: 1.15.6
+          stable: true
+    
+      - name: Print go env and version
+        run: |
+          go env -w GO111MODULE=on
+          go env
+          go version
+          
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Install hover
+        run: go get -u -a github.com/go-flutter-desktop/hover
+    
+      - name: build darwin
+        run: hover build darwin
