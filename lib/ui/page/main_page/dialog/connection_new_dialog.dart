@@ -625,7 +625,15 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
   Future doTest() async {
     if(_formKey.currentState.validate()) {
       var connectionInfo = context.read<NewConnectionBloc>().state;
-      bool success = await Redis.instance.ping(connectionInfo.toJson())  ;
+      connectionInfo = connectionInfo.rebuild((b) {
+        if(StringUtil.isBlank(b.redisPort)) {
+          b.redisPort = "6379";
+        }
+        if(StringUtil.isBlank(b.sshPort)) {
+          b.sshPort = "22";
+        }
+      });
+      bool success = await Redis.instance.ping(connectionInfo.toJson());
       if(success) {
         BotToast.showText(text: "连接成功。");
       } else {
@@ -638,7 +646,15 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
     if(_formKey.currentState.validate()) {
       var newConnectionBloc =context.read<NewConnectionBloc>();
       var newConnectionData = newConnectionBloc.state;
-      newConnectionData = newConnectionData.rebuild((b) => b..id = Uuid().v1());
+      newConnectionData = newConnectionData.rebuild((b) {
+        b.id = Uuid().v1();
+        if(StringUtil.isBlank(b.redisPort)) {
+          b.redisPort = "6379";
+        }
+        if(StringUtil.isBlank(b.sshPort)) {
+          b.sshPort = "22";
+        }
+      });
       await intMapStoreFactory.store("t_connection").add(Application.db, newConnectionData.toJson());
       newConnectionBloc.add(ClearConnectionContentEvent());
       newConnectionBloc.close();

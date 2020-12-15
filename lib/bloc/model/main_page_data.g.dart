@@ -9,11 +9,14 @@ part of 'main_page_data.dart';
 class _$MainPageData extends MainPageData {
   @override
   final bool connectionListOpen;
+  @override
+  final BuiltMap<String, ConnectionDetail> connectedRedisMap;
 
   factory _$MainPageData([void Function(MainPageDataBuilder) updates]) =>
       (new MainPageDataBuilder()..update(updates)).build();
 
-  _$MainPageData._({this.connectionListOpen}) : super._();
+  _$MainPageData._({this.connectionListOpen, this.connectedRedisMap})
+      : super._();
 
   @override
   MainPageData rebuild(void Function(MainPageDataBuilder) updates) =>
@@ -26,18 +29,21 @@ class _$MainPageData extends MainPageData {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is MainPageData &&
-        connectionListOpen == other.connectionListOpen;
+        connectionListOpen == other.connectionListOpen &&
+        connectedRedisMap == other.connectedRedisMap;
   }
 
   @override
   int get hashCode {
-    return $jf($jc(0, connectionListOpen.hashCode));
+    return $jf(
+        $jc($jc(0, connectionListOpen.hashCode), connectedRedisMap.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('MainPageData')
-          ..add('connectionListOpen', connectionListOpen))
+          ..add('connectionListOpen', connectionListOpen)
+          ..add('connectedRedisMap', connectedRedisMap))
         .toString();
   }
 }
@@ -51,11 +57,19 @@ class MainPageDataBuilder
   set connectionListOpen(bool connectionListOpen) =>
       _$this._connectionListOpen = connectionListOpen;
 
+  MapBuilder<String, ConnectionDetail> _connectedRedisMap;
+  MapBuilder<String, ConnectionDetail> get connectedRedisMap =>
+      _$this._connectedRedisMap ??= new MapBuilder<String, ConnectionDetail>();
+  set connectedRedisMap(
+          MapBuilder<String, ConnectionDetail> connectedRedisMap) =>
+      _$this._connectedRedisMap = connectedRedisMap;
+
   MainPageDataBuilder();
 
   MainPageDataBuilder get _$this {
     if (_$v != null) {
       _connectionListOpen = _$v.connectionListOpen;
+      _connectedRedisMap = _$v.connectedRedisMap?.toBuilder();
       _$v = null;
     }
     return this;
@@ -76,8 +90,126 @@ class MainPageDataBuilder
 
   @override
   _$MainPageData build() {
-    final _$result =
-        _$v ?? new _$MainPageData._(connectionListOpen: connectionListOpen);
+    _$MainPageData _$result;
+    try {
+      _$result = _$v ??
+          new _$MainPageData._(
+              connectionListOpen: connectionListOpen,
+              connectedRedisMap: _connectedRedisMap?.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'connectedRedisMap';
+        _connectedRedisMap?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'MainPageData', _$failedField, e.toString());
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$ConnectionDetail extends ConnectionDetail {
+  @override
+  final int dbNum;
+  @override
+  final BuiltMap<String, int> dbKeyNumMap;
+
+  factory _$ConnectionDetail(
+          [void Function(ConnectionDetailBuilder) updates]) =>
+      (new ConnectionDetailBuilder()..update(updates)).build();
+
+  _$ConnectionDetail._({this.dbNum, this.dbKeyNumMap}) : super._();
+
+  @override
+  ConnectionDetail rebuild(void Function(ConnectionDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  ConnectionDetailBuilder toBuilder() =>
+      new ConnectionDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ConnectionDetail &&
+        dbNum == other.dbNum &&
+        dbKeyNumMap == other.dbKeyNumMap;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc(0, dbNum.hashCode), dbKeyNumMap.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('ConnectionDetail')
+          ..add('dbNum', dbNum)
+          ..add('dbKeyNumMap', dbKeyNumMap))
+        .toString();
+  }
+}
+
+class ConnectionDetailBuilder
+    implements Builder<ConnectionDetail, ConnectionDetailBuilder> {
+  _$ConnectionDetail _$v;
+
+  int _dbNum;
+  int get dbNum => _$this._dbNum;
+  set dbNum(int dbNum) => _$this._dbNum = dbNum;
+
+  MapBuilder<String, int> _dbKeyNumMap;
+  MapBuilder<String, int> get dbKeyNumMap =>
+      _$this._dbKeyNumMap ??= new MapBuilder<String, int>();
+  set dbKeyNumMap(MapBuilder<String, int> dbKeyNumMap) =>
+      _$this._dbKeyNumMap = dbKeyNumMap;
+
+  ConnectionDetailBuilder();
+
+  ConnectionDetailBuilder get _$this {
+    if (_$v != null) {
+      _dbNum = _$v.dbNum;
+      _dbKeyNumMap = _$v.dbKeyNumMap?.toBuilder();
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ConnectionDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$ConnectionDetail;
+  }
+
+  @override
+  void update(void Function(ConnectionDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$ConnectionDetail build() {
+    _$ConnectionDetail _$result;
+    try {
+      _$result = _$v ??
+          new _$ConnectionDetail._(
+              dbNum: dbNum, dbKeyNumMap: _dbKeyNumMap?.build());
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'dbKeyNumMap';
+        _dbKeyNumMap?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'ConnectionDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
