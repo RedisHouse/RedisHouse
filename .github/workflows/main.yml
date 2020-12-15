@@ -48,7 +48,7 @@ jobs:
           sudo apt install -y python3-pip python3-setuptools patchelf desktop-file-utils libgdk-pixbuf2.0-dev fakeroot
           sudo wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/local/bin/appimagetool
           sudo chmod +x /usr/local/bin/appimagetool
-          
+
       - name: build linux
         run: |
           hover build linux-appimage
@@ -120,6 +120,12 @@ jobs:
       
       - name: Install hover
         run: go get -u -a github.com/go-flutter-desktop/hover
+
+      - name: Install wix311
+        run: ｜
+          wget https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe
+          wix311.exe /install /quiet /norestart
+        shell: bash
     
       - name: build windows
         run: |
