@@ -37,6 +37,10 @@ jobs:
           go env
           go version
 
+      - name: install darling
+        run: |
+          apt-get install darling
+          
       - name: Install dependencies
         run: flutter pub get
       
