@@ -55,6 +55,13 @@ jobs:
           sudo apt install -y tree
           tree ./go/build/outputs/
 
+      - name: 'Upload appimage'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Redis_House-1.0.0-x86_64.AppImage
+          path: ./go/build/outputs/linux-appimage-release/Redis_House-1.0.0-x86_64.AppImage
+          retention-days: 5
+
   build-darwin:
     runs-on: macos-11.0
 
