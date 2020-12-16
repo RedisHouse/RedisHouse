@@ -46,7 +46,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.link),
+                    Icon(Icons.add),
                     SizedBox(width: 5,),
                     Text("添加连接")
                   ],
@@ -54,62 +54,68 @@ class _MainPageState extends BaseStatefulState<MainPage> {
               ),
             ),
             SizedBox(width: 50,),
-            InkWell(
-              onTap: () {
-                BotToast.showText(text: "导入");
-              },
-              hoverColor: Colors.red.withAlpha(128),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.get_app),
-                    SizedBox(width: 5,),
-                    Text("导入")
-                  ],
+            Offstage(
+              offstage: true,
+              child: InkWell(
+                onTap: () {
+                  BotToast.showText(text: "导入");
+                },
+                hoverColor: Colors.red.withAlpha(128),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.get_app),
+                      SizedBox(width: 5,),
+                      Text("导入")
+                    ],
+                  ),
                 ),
               ),
             ),
-            InkWell(
-              onTap: () {
-                BotToast.showText(text: "导出");
-              },
-              hoverColor: Colors.red.withAlpha(128),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.upload_rounded),
-                    SizedBox(width: 5,),
-                    Text("导出")
-                  ],
+            Offstage(
+              offstage: true,
+              child: InkWell(
+                onTap: () {
+                  BotToast.showText(text: "导出");
+                },
+                hoverColor: Colors.red.withAlpha(128),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.upload_rounded),
+                      SizedBox(width: 5,),
+                      Text("导出")
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        leftBar: BlocConsumer<MainPageBloc, MainPageData>(
-          listener: (context, state) {
-
+        leftBar: BlocBuilder<MainPageBloc, MainPageData>(
+          buildWhen: (previous, current) {
+            return previous.redisListOpen != current.redisListOpen;
           },
           builder: (context, state) {
             return Column(
               children: [
                 Container(
-                  color: state.connectionListOpen??false ? Colors.green.withAlpha(128) : Colors.transparent,
+                  color: state.redisListOpen??false ? Colors.green.withAlpha(128) : Colors.transparent,
                   child: RotatedBox(
                     quarterTurns: -1,
                     child: InkWell(
                       onTap: () {
-                        bool openState = state.connectionListOpen??false;
-                        context.read<MainPageBloc>().add(ConnectionListOpenEvent(!openState));
+                        bool openState = state.redisListOpen??false;
+                        context.read<MainPageBloc>().add(RedisListOpenEvent(!openState));
                       },
                       hoverColor: Colors.red.withAlpha(128),
                       child: Padding(
                         padding: const EdgeInsets.all(5.0),
-                        child: Text("Connection", style: TextStyle(fontSize: 14),),
+                        child: Text("Redis 列表", style: TextStyle(fontSize: 14),),
                       ),
                     ),
                   ),
@@ -123,7 +129,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
             return Row(
               children: [
                 Offstage(
-                  offstage: !(state.connectionListOpen??false),
+                  offstage: !(state.redisListOpen??false),
                   child: Container(
                     width: 300,
                     color: Colors.black.withAlpha(128),
@@ -132,32 +138,46 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                 ),
                 Expanded(child: Container(
                   child: Center(child: Text("Redis House.", style: TextStyle(fontSize: 50),)),
-                ))
+                )),
+                Offstage(
+                  offstage: !(state.logOpen??false),
+                  child: Container(
+                    width: 300,
+                    color: Colors.black.withAlpha(128),
+                    child: Center(child: Text("日志", style: TextStyle(fontSize: 50),)),
+                  ),
+                ),
               ],
             );
           }
         ),
-        bottomBar: Row(
-          children: [
-            InkWell(
-              onTap: () {
-                BotToast.showText(text: "查看日志");
-              },
-              hoverColor: Colors.red.withAlpha(128),
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.file_present, size: 20,),
-                    SizedBox(width: 5,),
-                    Text("查看日志", style: TextStyle(fontSize: 14),)
-                  ],
+        rightBar: BlocBuilder<MainPageBloc, MainPageData>(
+          buildWhen: (previous, current) {
+            return previous.logOpen != current.logOpen;
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                Container(
+                  color: state.logOpen??false ? Colors.green.withAlpha(128) : Colors.transparent,
+                  child: RotatedBox(
+                    quarterTurns: 1,
+                    child: InkWell(
+                      onTap: () {
+                        bool openState = state.logOpen??false;
+                        context.read<MainPageBloc>().add(LogOpenEvent(!openState));
+                      },
+                      hoverColor: Colors.red.withAlpha(128),
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Text("查看日志", style: TextStyle(fontSize: 14),),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(child: Container()),
-          ],
+              ],
+            );
+          }
         ),
       ),
     );

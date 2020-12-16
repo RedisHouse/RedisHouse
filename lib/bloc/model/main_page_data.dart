@@ -7,7 +7,10 @@ part 'main_page_data.g.dart';
 abstract class MainPageData implements Built<MainPageData, MainPageDataBuilder>  {
 
   @nullable
-  bool get connectionListOpen;
+  bool get redisListOpen;
+
+  @nullable
+  bool get logOpen;
 
   @nullable
   BuiltMap<String, ConnectionDetail> get connectedRedisMap;

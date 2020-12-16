@@ -21,30 +21,54 @@ class MainPageFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          height: 50,
-          color: Colors.black38,
-          child: topBar,
+        Offstage(
+          offstage: topBar == null,
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.black38,
+              border: Border(bottom: BorderSide(color: Colors.grey.withAlpha(128), width: 0.5))
+            ),
+            child: topBar,
+          ),
         ),
         Expanded(child: Row(
           children: [
-            Container(
-              width: 30,
-              color: Colors.black38,
-              child: leftBar,
+            Offstage(
+              offstage: leftBar == null,
+              child: Container(
+                width: 30,
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  border: Border(right: BorderSide(color: Colors.grey.withAlpha(128), width: 0.5))
+                ),
+                child: leftBar,
+              ),
             ),
             Expanded(child: body),
-            Container(
-              width: 30,
-              color: Colors.black38,
-              child: rightBar,
+            Offstage(
+              offstage: rightBar == null,
+              child: Container(
+                width: 30,
+                decoration: BoxDecoration(
+                    color: Colors.black38,
+                    border: Border(left: BorderSide(color: Colors.grey.withAlpha(128), width: 0.5))
+                ),
+                child: rightBar,
+              ),
             ),
           ],
         )),
-        Container(
-          height: 30,
-          color: Colors.black38,
-          child: bottomBar,
+        Offstage(
+          offstage: bottomBar == null,
+          child: Container(
+            height: 30,
+            decoration: BoxDecoration(
+                color: Colors.black38,
+                border: Border(top: BorderSide(color: Colors.grey.withAlpha(128), width: 0.5))
+            ),
+            child: bottomBar,
+          ),
         ),
       ],
     );

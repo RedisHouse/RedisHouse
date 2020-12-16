@@ -8,14 +8,16 @@ part of 'main_page_data.dart';
 
 class _$MainPageData extends MainPageData {
   @override
-  final bool connectionListOpen;
+  final bool redisListOpen;
+  @override
+  final bool logOpen;
   @override
   final BuiltMap<String, ConnectionDetail> connectedRedisMap;
 
   factory _$MainPageData([void Function(MainPageDataBuilder) updates]) =>
       (new MainPageDataBuilder()..update(updates)).build();
 
-  _$MainPageData._({this.connectionListOpen, this.connectedRedisMap})
+  _$MainPageData._({this.redisListOpen, this.logOpen, this.connectedRedisMap})
       : super._();
 
   @override
@@ -29,20 +31,22 @@ class _$MainPageData extends MainPageData {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is MainPageData &&
-        connectionListOpen == other.connectionListOpen &&
+        redisListOpen == other.redisListOpen &&
+        logOpen == other.logOpen &&
         connectedRedisMap == other.connectedRedisMap;
   }
 
   @override
   int get hashCode {
-    return $jf(
-        $jc($jc(0, connectionListOpen.hashCode), connectedRedisMap.hashCode));
+    return $jf($jc($jc($jc(0, redisListOpen.hashCode), logOpen.hashCode),
+        connectedRedisMap.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('MainPageData')
-          ..add('connectionListOpen', connectionListOpen)
+          ..add('redisListOpen', redisListOpen)
+          ..add('logOpen', logOpen)
           ..add('connectedRedisMap', connectedRedisMap))
         .toString();
   }
@@ -52,10 +56,14 @@ class MainPageDataBuilder
     implements Builder<MainPageData, MainPageDataBuilder> {
   _$MainPageData _$v;
 
-  bool _connectionListOpen;
-  bool get connectionListOpen => _$this._connectionListOpen;
-  set connectionListOpen(bool connectionListOpen) =>
-      _$this._connectionListOpen = connectionListOpen;
+  bool _redisListOpen;
+  bool get redisListOpen => _$this._redisListOpen;
+  set redisListOpen(bool redisListOpen) =>
+      _$this._redisListOpen = redisListOpen;
+
+  bool _logOpen;
+  bool get logOpen => _$this._logOpen;
+  set logOpen(bool logOpen) => _$this._logOpen = logOpen;
 
   MapBuilder<String, ConnectionDetail> _connectedRedisMap;
   MapBuilder<String, ConnectionDetail> get connectedRedisMap =>
@@ -68,7 +76,8 @@ class MainPageDataBuilder
 
   MainPageDataBuilder get _$this {
     if (_$v != null) {
-      _connectionListOpen = _$v.connectionListOpen;
+      _redisListOpen = _$v.redisListOpen;
+      _logOpen = _$v.logOpen;
       _connectedRedisMap = _$v.connectedRedisMap?.toBuilder();
       _$v = null;
     }
@@ -94,7 +103,8 @@ class MainPageDataBuilder
     try {
       _$result = _$v ??
           new _$MainPageData._(
-              connectionListOpen: connectionListOpen,
+              redisListOpen: redisListOpen,
+              logOpen: logOpen,
               connectedRedisMap: _connectedRedisMap?.build());
     } catch (_) {
       String _$failedField;

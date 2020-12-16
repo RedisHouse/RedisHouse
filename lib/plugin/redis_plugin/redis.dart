@@ -21,6 +21,12 @@ class Redis {
     return _channel.invokeMethod("connectTo", connectionInfo);
   }
 
+  Future close(String connectionId,) {
+    return _channel.invokeMethod("close", {
+      "id": connectionId,
+    });
+  }
+
   Future set(String connectionId, String key, String value) {
     return _channel.invokeMethod("set", {
       "id": connectionId,
