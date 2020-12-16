@@ -11,7 +11,7 @@ class Redis {
 
   Future<bool> ping(Map connectionInfo) async {
     return _channel.invokeMethod("ping", connectionInfo).then((value) {
-      return Future.value(StringUtil.isEqual("PONG", value));
+      return Future.value(true);
     }).catchError((e) {
       return Future.value(false);
     });
