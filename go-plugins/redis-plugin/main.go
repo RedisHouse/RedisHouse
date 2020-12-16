@@ -171,8 +171,11 @@ func close(arguments interface{}) (reply interface{}, err error) {
 		return nil, errors.New("尚未连接！")
 	}
 	connection := connectionsMap[argsMap["id"].(string)]
-	return nil, connection.Close()
-
+	err = connection.Close()
+	if err == nil {
+		delete(connectionsMap, argsMap["id"].(string))
+	}
+	return nil, err
 }
 
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
