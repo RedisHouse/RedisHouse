@@ -132,7 +132,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                 Offstage(
                   offstage: !(state.redisListOpen??false),
                   child: Container(
-                    width: 300,
+                    width: 400,
                     color: Colors.black.withAlpha(128),
                     child: connectionList(state),
                   ),
@@ -212,7 +212,65 @@ class _MainPageState extends BaseStatefulState<MainPage> {
           BotToast.showText(text: "连接出错！");
         });
       },
-      title: Text(connection.redisName),
+      title: Row(
+        children: [
+          Expanded(child: Text(connection.redisName, maxLines: 1, overflow: TextOverflow.ellipsis,)),
+          InkWell(
+            onTap: () async {
+              context.read<NewConnectionBloc>().add(EditConnectionEvent(connection));
+              newConnectionDialog(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "编辑连接信息",
+                child: Icon(Icons.edit),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              context.read<NewConnectionBloc>().add(CopyConnectionEvent(connection));
+              newConnectionDialog(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "复制连接信息",
+                child: Icon(Icons.copy),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              bool deleteConfirm = await NAlertDialog(
+                dialogStyle: DialogStyle(titleDivider: true),
+                title: Text("删除连接"),
+                content: Text("确定要删除连接【${connection.redisName}】吗？"),
+                actions: <Widget>[
+                  FlatButton(child: Text("取消", style: TextStyle(color: Colors.white),),onPressed: () {
+                    Navigator.pop(context, false);
+                  }),
+                  FlatButton(child: Text("删除", style: TextStyle(color: Colors.red),),onPressed: () {
+                    Navigator.pop(context, true);
+                  }),
+                ],
+              ).show(context);
+              if(deleteConfirm??false) {
+                var finder = Finder(filter: Filter.equals('id', connection.id), limit: 1);
+                await intMapStoreFactory.store("t_connection").delete(Application.db, finder: finder);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Tooltip(
+                message: "删除连接",
+                child: Icon(Icons.delete),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -223,13 +281,28 @@ class _MainPageState extends BaseStatefulState<MainPage> {
       onExpansionChanged: (expanded) {
         context.read<MainPageBloc>().add(ConnectionExpandEvent(connection.id, expanded));
       },
-      title: Text(connection.redisName),
-      subtitle: Wrap(
-        alignment: WrapAlignment.end,
+      title: Row(
         children: [
+          Expanded(child: Text(connection.redisName, maxLines: 1, overflow: TextOverflow.ellipsis,)),
           InkWell(
             onTap: () {
-
+              Redis.instance.close(connection.id).then((value) {
+                context.read<MainPageBloc>().add(ConnectionCloseEvent(connection.id));
+              }).catchError((e) {
+                BotToast.showText(text: "断开连接失败！");
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Tooltip(
+                message: "断开连接",
+                child: Icon(Icons.link_off),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              BotToast.showText(text: "服务器信息。");
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
@@ -241,7 +314,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
           ),
           InkWell(
             onTap: () {
-
+              BotToast.showText(text: "打开控制台。");
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
@@ -274,22 +347,6 @@ class _MainPageState extends BaseStatefulState<MainPage> {
               child: Tooltip(
                 message: "复制连接信息",
                 child: Icon(Icons.copy),
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              Redis.instance.close(connection.id).then((value) {
-                context.read<MainPageBloc>().add(ConnectionCloseEvent(connection.id));
-              }).catchError((e) {
-                BotToast.showText(text: "断开连接失败！");
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Tooltip(
-                message: "断开连接",
-                child: Icon(Icons.link_off),
               ),
             ),
           ),
