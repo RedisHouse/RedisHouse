@@ -13,6 +13,8 @@ func getSSHClient(argsMap map[interface{}]interface{}) (*ssh.Client, error) {
 
 	addr := argsMap["sshAddress"].(string) + ":" + argsMap["sshPort"].(string)
 
+	//var hostKey ssh.PublicKey
+
 	config := &ssh.ClientConfig{
 		User: argsMap["sshUser"].(string),
 		//Auth: []ssh.AuthMethod{
@@ -22,6 +24,7 @@ func getSSHClient(argsMap map[interface{}]interface{}) (*ssh.Client, error) {
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
+		// HostKeyCallback: ssh.FixedHostKey(hostKey),
 	}
 
 	if _, ok := argsMap["useSSHPrivateKey"]; ok && argsMap["useSSHPrivateKey"].(bool) {
@@ -63,14 +66,15 @@ func publicKeyAuthFunc(argsMap map[interface{}]interface{}) ssh.AuthMethod {
 	}
 
 	var signer ssh.Signer
-	if _, ok:= argsMap["sshPrivateKeyPassword"]; ok {
+	if _, ok := argsMap["sshPrivateKeyPassword"]; ok {
 		signer, err = ssh.ParsePrivateKeyWithPassphrase(key, []byte(argsMap["sshPrivateKeyPassword"].(string)))
 	} else {
 		signer, err = ssh.ParsePrivateKey(key)
-
 	}
+
 	if err != nil {
 		log.Fatal("ssh key signer failed", err)
 	}
+
 	return ssh.PublicKeys(signer)
 }
