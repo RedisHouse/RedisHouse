@@ -3,6 +3,8 @@ package redis_plugin
 import (
 	"context"
 	"errors"
+	"log"
+	"net"
 	"strings"
 	"time"
 
@@ -20,19 +22,21 @@ type RedisPlugin struct {
 var _ flutter.Plugin = &RedisPlugin{}
 
 type Connection struct {
-	id               string
-	name             string
-	useSSLTLS        bool
-	useSSHTunnel     bool
-	useSSHPrivateKey bool
-	redisName        string
-	redisAddress     string
-	redisPort        string
-	redisPassword    string
-	sshAddress       string
-	sshPort          string
-	sshUser          string
-	sshPrivateKey    string
+	id                    string
+	name                  string
+	useSSLTLS             bool
+	useSSHTunnel          bool
+	useSSHPrivateKey      bool
+	redisName             string
+	redisAddress          string
+	redisPort             string
+	redisPassword         string
+	sshAddress            string
+	sshPassword           string
+	sshPort               string
+	sshUser               string
+	sshPrivateKey         string
+	sshPrivateKeyPassword string
 }
 
 var connectionsMap map[string]*redis.Client = make(map[string]*redis.Client)
@@ -55,18 +59,35 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 func connectTo(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := connectionsMap[argsMap["id"].(string)]
-	if ok {
+	if _, ok := connectionsMap[argsMap["id"].(string)]; ok {
 		return
+	}
+	if nil != err {
+		log.Printf("get ssh client err: %v\n", err)
+		return nil, err
 	}
 
 	option := redis.Options{
 		Addr: argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
 		DB:   0, // use default DB
+
 	}
 
 	if _, ok := argsMap["redisPassword"]; ok {
 		option.Password = argsMap["redisPassword"].(string)
+	}
+
+	if _, ok := argsMap["useSSHTunnel"]; ok {
+		client, err := getSSHClient(argsMap["sshUser"].(string), argsMap["sshPassword"].(string),
+			argsMap["sshPrivateKey"].(string), argsMap["sshPrivateKeyPassword"].(string),
+			argsMap["sshAddress"].(string)+":"+argsMap["sshPort"].(string))
+
+		if err != nil {
+			return nil, err
+		}
+		option.Dialer = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+			return client.Dial(network, addr)
+		}
 	}
 
 	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&option)
@@ -83,6 +104,19 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 
 	if _, ok := argsMap["redisPassword"]; ok {
 		option.Password = argsMap["redisPassword"].(string)
+	}
+
+	if _, ok := argsMap["useSSHTunnel"]; ok {
+		client, err := getSSHClient(argsMap["sshUser"].(string), argsMap["sshPassword"].(string),
+			argsMap["sshPrivateKey"].(string), argsMap["sshPrivateKeyPassword"].(string),
+			argsMap["sshAddress"].(string)+":"+argsMap["sshPort"].(string))
+
+		if err != nil {
+			return nil, err
+		}
+		option.Dialer = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+			return client.Dial(network, addr)
+		}
 	}
 
 	connection := redis.NewClient(&option)
