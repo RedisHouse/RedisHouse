@@ -326,8 +326,14 @@ class _MainPageState extends BaseStatefulState<MainPage> {
           ),
           InkWell(
             onTap: () async {
-              context.read<NewConnectionBloc>().add(EditConnectionEvent(connection));
-              newConnectionDialog(context);
+              Redis.instance.close(connection.id).then((value) {
+                context.read<MainPageBloc>().add(ConnectionCloseEvent(connection.id));
+
+                context.read<NewConnectionBloc>().add(EditConnectionEvent(connection));
+                newConnectionDialog(context);
+              }).catchError((e) {
+                BotToast.showText(text: "断开连接失败！");
+              });
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
