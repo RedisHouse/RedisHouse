@@ -23,6 +23,7 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
         }
         connectedRedisMap[event.connectionId] = ConnectionDetail((b) {
           b.dbNum=event.dbNum;
+          b.expanded=true;
           MapBuilder<String, int> dbKeyNumMap = BuiltMap<String, int>().toBuilder();
           for(int i = 0; i < event.dbNum; i++) {
             dbKeyNumMap["db$i"] = -1;
