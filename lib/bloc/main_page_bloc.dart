@@ -11,8 +11,10 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
 
   @override
   Stream<MainPageData> mapEventToState(event) async* {
-    if(event is ConnectionListOpenEvent) {
-      yield state.rebuild((b) => b..connectionListOpen=event.open);
+    if(event is RedisListOpenEvent) {
+      yield state.rebuild((b) => b..redisListOpen=event.open);
+    } else if(event is LogOpenEvent) {
+      yield state.rebuild((b) => b..logOpen=event.open);
     } else if(event is ConnectionOpenEvent) {
       yield state.rebuild((b) {
         MapBuilder<String, ConnectionDetail> connectedRedisMap = b.connectedRedisMap;
@@ -36,9 +38,14 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
 
 abstract class MainPageEvent {}
 
-class ConnectionListOpenEvent extends MainPageEvent {
+class RedisListOpenEvent extends MainPageEvent {
   bool open;
-  ConnectionListOpenEvent(this.open);
+  RedisListOpenEvent(this.open);
+}
+
+class LogOpenEvent extends MainPageEvent {
+  bool open;
+  LogOpenEvent(this.open);
 }
 
 class ConnectionOpenEvent extends MainPageEvent {
