@@ -87,8 +87,14 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 			return client.Dial(network, addr)
 		}
 	}
+	connection := redis.NewClient(&option)
+	pong, err := connection.Ping(ctx).Result()
 
-	connectionsMap[argsMap["id"].(string)] = redis.NewClient(&option)
+	if err != nil || pong != "PONG"{
+		log.Fatal("redis connect failed", err)
+		return nil, err
+	}
+	connectionsMap[argsMap["id"].(string)] = connection
 	return
 }
 
@@ -115,9 +121,16 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	connection := redis.NewClient(&option)
+	pong, err := connection.Ping(ctx).Result()
 
-	defer connection.Close()
-	return connection.Ping(ctx).Result()
+	if err != nil || pong != "PONG"{
+		log.Fatal("redis connect failed", err)
+		return nil, err
+	} else {
+		connection.Close()
+	}
+	
+	return
 }
 
 func get(arguments interface{}) (reply interface{}, err error) {
