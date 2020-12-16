@@ -3,14 +3,15 @@ package redis_plugin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"strings"
 	"time"
 
+	redigo "github.com/garyburd/redigo/redis"
 	flutter "github.com/go-flutter-desktop/go-flutter"
 	"github.com/go-flutter-desktop/go-flutter/plugin"
-	"github.com/go-redis/redis/v8"
 )
 
 const channelName = "plugins.redishouse.com/redis-plugin"
@@ -20,6 +21,7 @@ type RedisPlugin struct {
 }
 
 var _ flutter.Plugin = &RedisPlugin{}
+var pool_size = 20
 
 type Connection struct {
 	id                    string
@@ -39,7 +41,7 @@ type Connection struct {
 	sshPrivateKeyPassword string
 }
 
-var connectionsMap map[string]*redis.Client = make(map[string]*redis.Client)
+var poolsMap map[string]*redigo.Pool = make(map[string]*redigo.Pool)
 var ctx = context.Background()
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
@@ -59,7 +61,7 @@ func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 func connectTo(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	if _, ok := connectionsMap[argsMap["id"].(string)]; ok {
+	if _, ok := poolsMap[argsMap["id"].(string)]; ok {
 		return
 	}
 	if nil != err {
@@ -67,126 +69,170 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 		return nil, err
 	}
 
-	option := redis.Options{
-		Addr: argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
-		DB:   0, // use default DB
+	redisAddr := fmt.Sprintf("%s:%s", argsMap["redisAddress"].(string), argsMap["redisPort"].(string))
 
-	}
-
-	if _, ok := argsMap["redisPassword"]; ok {
-		option.Password = argsMap["redisPassword"].(string)
-	}
-
+	var conn net.Conn = nil
 	if _, ok := argsMap["useSSHTunnel"]; ok && argsMap["useSSHTunnel"].(bool) {
-		client, err := getSSHClient(argsMap)
 
+		client, err := getSSHClient(argsMap)
 		if err != nil {
+			log.Fatal("dial to redis addr err: ", err)
 			return nil, err
 		}
-		option.Dialer = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
-			return client.Dial(network, addr)
-		}
+		conn, err = client.Dial("tcp", redisAddr)
 	}
-	connection := redis.NewClient(&option)
-	pong, err := connection.Ping(ctx).Result()
 
-	if err != nil || pong != "PONG"{
+	pool := redigo.NewPool(
+		func() (redigo.Conn, error) {
+
+			var c redigo.Conn
+			if conn != nil {
+				c = redigo.NewConn(conn, -1, -1)
+			} else {
+				c, err = redigo.Dial("tcp", redisAddr)
+			}
+
+			if err != nil {
+				return nil, err
+			}
+
+			if _, ok := argsMap["redisPassword"]; ok && argsMap["redisPassword"].(string) != "" {
+				if _, err := c.Do("AUTH", argsMap["redisPassword"].(string)); err != nil {
+					c.Close()
+					return nil, err
+				}
+			}
+
+			if _, ok := argsMap["redisDB"]; ok {
+				if _, err := c.Do("SELECT", argsMap["redisDB"].(int)); err != nil {
+					c.Close()
+					return nil, err
+				}
+			}
+
+			return c, nil
+		}, pool_size)
+
+	pong, err := pool.Get().Do("ping")
+	if err != nil || pong.(string) != "PONG" {
 		log.Fatal("redis connect failed", err)
 		return nil, err
 	}
-	connectionsMap[argsMap["id"].(string)] = connection
+	poolsMap[argsMap["id"].(string)] = pool
 	return
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	option := redis.Options{
-		Addr: argsMap["redisAddress"].(string) + ":" + argsMap["redisPort"].(string),
-		DB:   0, // use default DB
+	if _, ok := poolsMap[argsMap["id"].(string)]; ok {
+		return
+	}
+	if nil != err {
+		log.Printf("get ssh client err: %v\n", err)
+		return nil, err
 	}
 
-	if _, ok := argsMap["redisPassword"]; ok {
-		option.Password = argsMap["redisPassword"].(string)
-	}
-
+	redisAddr := fmt.Sprintf("%s:%s", argsMap["redisAddress"].(string), argsMap["redisPort"].(string))
+	var conn net.Conn = nil
 	if _, ok := argsMap["useSSHTunnel"]; ok && argsMap["useSSHTunnel"].(bool) {
+
 		client, err := getSSHClient(argsMap)
 		if err != nil {
+			log.Fatal("dial to redis addr err: ", err)
 			return nil, err
 		}
-		option.Dialer = func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
-			return client.Dial(network, addr)
+		conn, err = client.Dial("tcp", redisAddr)
+	}
+
+	var c redigo.Conn
+	if conn != nil {
+		c = redigo.NewConn(conn, -1, -1)
+	} else {
+		c, err = redigo.Dial("tcp", redisAddr)
+	}
+
+	if _, ok := argsMap["redisPassword"]; ok && argsMap["redisPassword"].(string) != "" {
+		if _, err := c.Do("AUTH", argsMap["redisPassword"].(string)); err != nil {
+			c.Close()
+			return nil, err
 		}
 	}
 
-	connection := redis.NewClient(&option)
-	pong, err := connection.Ping(ctx).Result()
-
-	if err != nil || pong != "PONG"{
+	pong, err := c.Do("ping")
+	if err != nil || pong.(string) != "PONG" {
 		log.Fatal("redis connect failed", err)
 		return nil, err
-	} else {
-		connection.Close()
 	}
-	
 	return
 }
 
 func get(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := connectionsMap[argsMap["id"].(string)]
+	_, ok := poolsMap[argsMap["id"].(string)]
 	if !ok {
 		return nil, errors.New("尚未连接！")
 	}
 
-	connection := connectionsMap[argsMap["id"].(string)]
-	return connection.Get(ctx, argsMap["key"].(string)).Result()
+	pool := poolsMap[argsMap["id"].(string)]
+	return redigo.String(pool.Get().Do("GET", argsMap["key"].(string)))
 }
 
 func set(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := connectionsMap[argsMap["id"].(string)]
+	_, ok := poolsMap[argsMap["id"].(string)]
 	if !ok {
 		return nil, errors.New("尚未连接！")
 	}
 
-	connection := connectionsMap[argsMap["id"].(string)]
-	return nil, connection.Set(ctx, argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32))).Err()
+	pool := poolsMap[argsMap["id"].(string)]
+	return pool.Get().Do("SET", argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32)))
 }
 
 func do(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
 
-	_, ok := connectionsMap[argsMap["id"].(string)]
+	_, ok := poolsMap[argsMap["id"].(string)]
 	if !ok {
 		return false, errors.New("尚未连接！")
 	}
-	connection := connectionsMap[argsMap["id"].(string)]
+	c := poolsMap[argsMap["id"].(string)]
 
 	strFields := strings.Fields(argsMap["command"].(string))
-	commands := make([]interface{}, len(strFields))
-	for i, v := range strFields {
-		commands[i] = v
+	log.Println(strFields)
+	args := make([]interface{}, len(strFields) - 1)
+	for i, v := range strFields[1:] {
+		args[i] = v
 	}
 
-	return connection.Do(ctx, commands...).Result()
+	var res []string
+
+	if len(args) == 0 {
+		res, err = redigo.Strings(c.Get().Do(strFields[0]))
+	} else {
+		res, err = redigo.Strings(c.Get().Do(strFields[0], args...))
+	}
+	var sectionList = make([]interface{}, len(res))
+	for i, v := range res {
+		sectionList[i] = v
+	}
+	return sectionList, err
 }
 
 func close(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := connectionsMap[argsMap["id"].(string)]
+	_, ok := poolsMap[argsMap["id"].(string)]
 	if !ok {
 		return nil, errors.New("尚未连接！")
 	}
-	connection := connectionsMap[argsMap["id"].(string)]
-	err = connection.Close()
+	pool := poolsMap[argsMap["id"].(string)]
+	err = pool.Close()
 	if err == nil {
-		delete(connectionsMap, argsMap["id"].(string))
+		delete(poolsMap, argsMap["id"].(string))
 	}
 	return nil, err
 }

@@ -66,7 +66,7 @@ func publicKeyAuthFunc(argsMap map[interface{}]interface{}) ssh.AuthMethod {
 	}
 
 	var signer ssh.Signer
-	if _, ok := argsMap["sshPrivateKeyPassword"]; ok {
+	if _, ok := argsMap["sshPrivateKeyPassword"]; ok && argsMap["sshPrivateKeyPassword"].(string) != "" {
 		signer, err = ssh.ParsePrivateKeyWithPassphrase(key, []byte(argsMap["sshPrivateKeyPassword"].(string)))
 	} else {
 		signer, err = ssh.ParsePrivateKey(key)

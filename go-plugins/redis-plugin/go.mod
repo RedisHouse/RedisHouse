@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/Xuanwo/go-locale v1.0.0 // indirect
+	github.com/garyburd/redigo v1.6.2
 	github.com/go-flutter-desktop/go-flutter v0.42.0
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20201108214237-06ea97f0c265 // indirect
 	github.com/go-redis/redis/v8 v8.4.2
