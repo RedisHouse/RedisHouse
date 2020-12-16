@@ -2,9 +2,9 @@ name: go-flutter
 
 on:
   push:
-    #branches: [ master ]
-    tags:        
-      - v*   
+    branches: [ master ]
+    # tags:        
+    #   - v*   
       
 jobs:
 
@@ -156,6 +156,32 @@ jobs:
     runs-on: ubuntu-latest
     needs: ['build-linux', 'build-darwin']
     steps:
+
+      - name: Branch Name
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
+          SOURCE_BRANCH: ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
+          SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+        with:
+          tag_name: $SOURCE_TAG
+          release_name: Release $SOURCE_TAG
+          body: |
+            Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
+
       - uses: actions/download-artifact@v2
         with:
           name: Redis_House-1.0.0-x86_64.AppImage
@@ -170,21 +196,6 @@ jobs:
         run: |
           sudo apt install -y tree
           tree
-      
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Release
-            - First Change
-            - Second Change
-          draft: false
-          prerelease: false
 
       - name: Upload linux Release Asset
         id: upload-release-asset 
