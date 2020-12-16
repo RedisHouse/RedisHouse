@@ -61,7 +61,40 @@ class NewConnectionBloc extends BaseBloc<NewConnectionEvent, NewConnectionData> 
         }
       });
     } else if(event is ClearConnectionContentEvent) {
-      yield NewConnectionData((b) => b..useSSLTLS=false..useSSHTunnel=false..useSSHPrivateKey=false);
+      yield state.rebuild((b) => b..replace(NewConnectionData((b) => b..useSSLTLS=false..useSSHTunnel=false..useSSHPrivateKey=false)));
+    } else if(event is EditConnectionEvent) {
+      yield state.rebuild((b) {
+        b.id = event.connectionData.id;
+        b.redisName = event.connectionData.redisName??"";
+        b.redisAddress = event.connectionData.redisAddress??"";
+        b.redisPort = event.connectionData.redisPort??"";
+        b.redisPassword = event.connectionData.redisPassword??"";
+        b.sshAddress = event.connectionData.sshAddress??"";
+        b.sshPort = event.connectionData.sshPort??"";
+        b.sshUser = event.connectionData.sshUser??"";
+        b.sshPassword = event.connectionData.sshPassword??"";
+        b.sshPrivateKey = event.connectionData.sshPrivateKey??"";
+        b.sshPrivateKeyPassword = event.connectionData.sshPrivateKeyPassword??"";
+        b.useSSLTLS = event.connectionData.useSSLTLS;
+        b.useSSHTunnel = event.connectionData.useSSHTunnel;
+        b.useSSHPrivateKey = event.connectionData.useSSHPrivateKey;
+      });
+    } else if(event is CopyConnectionEvent) {
+      yield state.rebuild((b) {
+        b.redisName = event.connectionData.redisName??"";
+        b.redisAddress = event.connectionData.redisAddress??"";
+        b.redisPort = event.connectionData.redisPort??"";
+        b.redisPassword = event.connectionData.redisPassword??"";
+        b.sshAddress = event.connectionData.sshAddress??"";
+        b.sshPort = event.connectionData.sshPort??"";
+        b.sshUser = event.connectionData.sshUser??"";
+        b.sshPassword = event.connectionData.sshPassword??"";
+        b.sshPrivateKey = event.connectionData.sshPrivateKey??"";
+        b.sshPrivateKeyPassword = event.connectionData.sshPrivateKeyPassword??"";
+        b.useSSLTLS = event.connectionData.useSSLTLS;
+        b.useSSHTunnel = event.connectionData.useSSHTunnel;
+        b.useSSHPrivateKey = event.connectionData.useSSHPrivateKey;
+      });
     }
   }
 
@@ -106,4 +139,14 @@ class NewConnectionChangeSwitchEvent extends NewConnectionEvent {
     this.useSSHTunnel,
     this.useSSHPrivateKey,
   });
+}
+
+class EditConnectionEvent extends NewConnectionEvent {
+  NewConnectionData connectionData;
+  EditConnectionEvent(this.connectionData);
+}
+
+class CopyConnectionEvent extends NewConnectionEvent {
+  NewConnectionData connectionData;
+  CopyConnectionEvent(this.connectionData);
 }

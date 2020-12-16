@@ -23,6 +23,9 @@ abstract class MainPageData implements Built<MainPageData, MainPageDataBuilder> 
 abstract class ConnectionDetail implements Built<ConnectionDetail, ConnectionDetailBuilder>  {
 
   @nullable
+  bool get expanded;
+
+  @nullable
   int get dbNum;
 
   @nullable

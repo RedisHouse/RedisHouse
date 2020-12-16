@@ -31,6 +31,15 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
         });
         b.connectedRedisMap = connectedRedisMap;
       });
+    } else if(event is ConnectionCloseEvent) {
+      yield state.rebuild((b) {
+        b.connectedRedisMap.remove(event.connectionId);
+      });
+    } else if(event is ConnectionExpandEvent) {
+      yield state.rebuild((b) {
+        var detail = b.connectedRedisMap[event.connectionId];
+        b.connectedRedisMap[event.connectionId] = detail.rebuild((b) => b.expanded=event.expanded);
+      });
     }
   }
 
@@ -52,4 +61,15 @@ class ConnectionOpenEvent extends MainPageEvent {
   String connectionId;
   int dbNum;
   ConnectionOpenEvent(this.connectionId, this.dbNum);
+}
+
+class ConnectionCloseEvent extends MainPageEvent {
+  String connectionId;
+  ConnectionCloseEvent(this.connectionId,);
+}
+
+class ConnectionExpandEvent extends MainPageEvent {
+  String connectionId;
+  bool expanded;
+  ConnectionExpandEvent(this.connectionId, this.expanded);
 }

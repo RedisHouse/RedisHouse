@@ -114,6 +114,26 @@ class S {
       args: [],
     );
   }
+
+  /// `编辑连接`
+  String get editConnectionLabel {
+    return Intl.message(
+      '编辑连接',
+      name: 'editConnectionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清空`
+  String get clearLabel {
+    return Intl.message(
+      '清空',
+      name: 'clearLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

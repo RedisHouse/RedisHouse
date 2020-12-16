@@ -1,10 +1,8 @@
 
-import 'dart:convert';
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive/hive.dart';
 import 'package:pigment/pigment.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
@@ -16,7 +14,6 @@ import 'package:redis_house/router/application.dart';
 import 'package:redis_house/util/string_util.dart';
 import 'package:sembast/sembast.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/uuid_util.dart';
 
 Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) => showDialog(
   context: context,
@@ -26,97 +23,107 @@ Future<T> newConnectionDialog<T>(BuildContext context, {bool autoPop = true,}) =
     return SimpleDialog(
     contentPadding: EdgeInsets.zero,
     children: <Widget>[
-      Container(
-        width: MediaQuery.of(context).size.width/2,
-        height: MediaQuery.of(context).size.height/4*3,
-        child: Column(
-          children: [
-            Container(
-              child: Center(child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(S.of(context).newConnectionLabel, style: TextStyle(fontSize: 20),),
-              )),
+      BlocBuilder<NewConnectionBloc, NewConnectionData>(
+        builder: (context, state) {
+          return Container(
+            width: MediaQuery.of(context).size.width/2,
+            height: MediaQuery.of(context).size.height/4*3,
+            child: Column(
+              children: [
+                Container(
+                  child: Center(child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(StringUtil.isNotBlank(state.id) ? S.of(context).editConnectionLabel : S.of(context).newConnectionLabel, style: TextStyle(fontSize: 20),),
+                  )),
+                ),
+                Container(height: 0.2, color: Pigment.fromString("#FEFEFE"),),
+                Expanded(child: Container(
+                  child: _ConnectionInfoForm(_connectionInfoKey),
+                )),
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+                              await _connectionInfoKey.currentState.doTest();
+                            },
+                            child: Center(child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              child: Text(S.of(context).testConnectionLabel, style: TextStyle(color: Pigment.fromString("#4E80F7"), fontSize: 14, fontWeight: FontWeight.bold),),
+                            )),
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Container()),
+                      Container(
+                        color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              context.read<NewConnectionBloc>().add(ClearConnectionContentEvent());
+                              Navigator.pop(context);
+                            },
+                            child: Center(child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              child: Text(StringUtil.isNotBlank(state.id) ? S.of(context).cancelLabel : S.of(context).clearLabel, style: TextStyle(color: Pigment.fromString("#484848"), fontSize: 14, fontWeight: FontWeight.bold),),
+                            )),
+                          ),
+                        ),
+                      ),
+                      Offstage(
+                        offstage: StringUtil.isNotBlank(state.id),
+                        child: SizedBox(width: 15,),
+                      ),
+                      Offstage(
+                        offstage: StringUtil.isNotBlank(state.id),
+                        child: Container(
+                          color: Colors.white,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                if(autoPop) Navigator.pop(context);
+                              },
+                              child: Center(child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                                child: Text(S.of(context).cancelLabel, style: TextStyle(color: Pigment.fromString("#484848"), fontSize: 14, fontWeight: FontWeight.bold),),
+                              )),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 15,),
+                      Container(
+                        color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+                              bool saved = await _connectionInfoKey.currentState.doSave();
+                              if(saved) {
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: Center(child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              child: Text(S.of(context).saveLabel, style: TextStyle(color: Pigment.fromString("#4E80F7"), fontSize: 14, fontWeight: FontWeight.bold),),
+                            )),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ),
-            Container(height: 0.2, color: Pigment.fromString("#FEFEFE"),),
-            Expanded(child: Container(
-              child: _ConnectionInfoForm(_connectionInfoKey),
-            )),
-            Container(
-              margin: const EdgeInsets.all(8),
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    color: Colors.white,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () async {
-                          await _connectionInfoKey.currentState.doTest();
-                        },
-                        child: Center(child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          child: Text(S.of(context).testConnectionLabel, style: TextStyle(color: Pigment.fromString("#4E80F7"), fontSize: 14, fontWeight: FontWeight.bold),),
-                        )),
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Container()),
-                  Container(
-                    color: Colors.white,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          context.read<NewConnectionBloc>().add(ClearConnectionContentEvent());
-                          Navigator.pop(context);
-                        },
-                        child: Center(child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          child: Text("清空", style: TextStyle(color: Pigment.fromString("#484848"), fontSize: 14, fontWeight: FontWeight.bold),),
-                        )),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 15,),
-                  Container(
-                    color: Colors.white,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          if(autoPop) Navigator.pop(context);
-                        },
-                        child: Center(child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          child: Text(S.of(context).cancelLabel, style: TextStyle(color: Pigment.fromString("#484848"), fontSize: 14, fontWeight: FontWeight.bold),),
-                        )),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 15,),
-                  Container(
-                    color: Colors.white,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () async {
-                          bool saved = await _connectionInfoKey.currentState.doSave();
-                          if(saved) {
-                            Navigator.pop(context);
-                          }
-                        },
-                        child: Center(child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                          child: Text(S.of(context).saveLabel, style: TextStyle(color: Pigment.fromString("#4E80F7"), fontSize: 14, fontWeight: FontWeight.bold),),
-                        )),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ],
-        ),
+          );
+        }
       ),
     ],
   );
@@ -633,32 +640,50 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
           b.sshPort = "22";
         }
       });
-      bool success = await Redis.instance.ping(connectionInfo.toJson());
-      if(success) {
-        BotToast.showText(text: "连接成功。");
-      } else {
-        BotToast.showText(text: "连接失败！");
-      }
+
+      Redis.instance.ping(connectionInfo.toJson()).then((success) {
+        if(success) {
+          BotToast.showText(text: "连接成功。");
+        } else {
+          BotToast.showText(text: "连接失败！");
+        }
+      }).catchError((e) {
+        BotToast.showText(text: "连接出错！");
+      });
+
     }
   }
 
   Future<bool> doSave() async {
     if(_formKey.currentState.validate()) {
-      var newConnectionBloc =context.read<NewConnectionBloc>();
-      var newConnectionData = newConnectionBloc.state;
-      newConnectionData = newConnectionData.rebuild((b) {
-        b.id = Uuid().v1();
-        if(StringUtil.isBlank(b.redisPort)) {
-          b.redisPort = "6379";
-        }
-        if(StringUtil.isBlank(b.sshPort)) {
-          b.sshPort = "22";
-        }
-      });
-      await intMapStoreFactory.store("t_connection").add(Application.db, newConnectionData.toJson());
-      newConnectionBloc.add(ClearConnectionContentEvent());
-      newConnectionBloc.close();
+      var newConnectionData = context.read<NewConnectionBloc>().state;
 
+      if(StringUtil.isNotBlank(newConnectionData.id)) {
+        // 修改连接
+        newConnectionData = newConnectionData.rebuild((b) {
+          if(StringUtil.isBlank(b.redisPort)) {
+            b.redisPort = "6379";
+          }
+          if(StringUtil.isBlank(b.sshPort)) {
+            b.sshPort = "22";
+          }
+        });
+        var finder = Finder(filter: Filter.equals('id', newConnectionData.id), limit: 1);
+        await intMapStoreFactory.store("t_connection").update(Application.db, newConnectionData.toJson(), finder: finder);
+      } else {
+        // 新建连接
+        newConnectionData = newConnectionData.rebuild((b) {
+          b.id = Uuid().v1();
+          if(StringUtil.isBlank(b.redisPort)) {
+            b.redisPort = "6379";
+          }
+          if(StringUtil.isBlank(b.sshPort)) {
+            b.sshPort = "22";
+          }
+        });
+        await intMapStoreFactory.store("t_connection").add(Application.db, newConnectionData.toJson());
+      }
+      context.read<NewConnectionBloc>().add(ClearConnectionContentEvent());
       BotToast.showText(text: "已保存。");
       return Future.value(true);
     }

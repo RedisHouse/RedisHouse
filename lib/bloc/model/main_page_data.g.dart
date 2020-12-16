@@ -124,6 +124,8 @@ class MainPageDataBuilder
 
 class _$ConnectionDetail extends ConnectionDetail {
   @override
+  final bool expanded;
+  @override
   final int dbNum;
   @override
   final BuiltMap<String, int> dbKeyNumMap;
@@ -132,7 +134,8 @@ class _$ConnectionDetail extends ConnectionDetail {
           [void Function(ConnectionDetailBuilder) updates]) =>
       (new ConnectionDetailBuilder()..update(updates)).build();
 
-  _$ConnectionDetail._({this.dbNum, this.dbKeyNumMap}) : super._();
+  _$ConnectionDetail._({this.expanded, this.dbNum, this.dbKeyNumMap})
+      : super._();
 
   @override
   ConnectionDetail rebuild(void Function(ConnectionDetailBuilder) updates) =>
@@ -146,18 +149,21 @@ class _$ConnectionDetail extends ConnectionDetail {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is ConnectionDetail &&
+        expanded == other.expanded &&
         dbNum == other.dbNum &&
         dbKeyNumMap == other.dbKeyNumMap;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc(0, dbNum.hashCode), dbKeyNumMap.hashCode));
+    return $jf($jc(
+        $jc($jc(0, expanded.hashCode), dbNum.hashCode), dbKeyNumMap.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ConnectionDetail')
+          ..add('expanded', expanded)
           ..add('dbNum', dbNum)
           ..add('dbKeyNumMap', dbKeyNumMap))
         .toString();
@@ -167,6 +173,10 @@ class _$ConnectionDetail extends ConnectionDetail {
 class ConnectionDetailBuilder
     implements Builder<ConnectionDetail, ConnectionDetailBuilder> {
   _$ConnectionDetail _$v;
+
+  bool _expanded;
+  bool get expanded => _$this._expanded;
+  set expanded(bool expanded) => _$this._expanded = expanded;
 
   int _dbNum;
   int get dbNum => _$this._dbNum;
@@ -182,6 +192,7 @@ class ConnectionDetailBuilder
 
   ConnectionDetailBuilder get _$this {
     if (_$v != null) {
+      _expanded = _$v.expanded;
       _dbNum = _$v.dbNum;
       _dbKeyNumMap = _$v.dbKeyNumMap?.toBuilder();
       _$v = null;
@@ -208,7 +219,9 @@ class ConnectionDetailBuilder
     try {
       _$result = _$v ??
           new _$ConnectionDetail._(
-              dbNum: dbNum, dbKeyNumMap: _dbKeyNumMap?.build());
+              expanded: expanded,
+              dbNum: dbNum,
+              dbKeyNumMap: _dbKeyNumMap?.build());
     } catch (_) {
       String _$failedField;
       try {

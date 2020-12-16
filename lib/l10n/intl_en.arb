@@ -6,5 +6,7 @@
   "newConnectionLabel": "新建连接",
   "testConnectionLabel": "测试连接",
   "cancelLabel": "取消",
-  "saveLabel": "保存"
+  "saveLabel": "保存",
+  "editConnectionLabel": "编辑连接",
+  "clearLabel": "清空"
 }

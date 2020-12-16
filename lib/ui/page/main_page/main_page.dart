@@ -3,15 +3,18 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ndialog/ndialog.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/bloc/new_connection_bloc.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/router/application.dart';
 import 'package:redis_house/ui/page/main_page/component/main_page_frame.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
 import 'package:redis_house/ui/page/main_page/dialog/connection_new_dialog.dart';
 import 'package:sembast/sembast.dart';
+import 'package:uuid/uuid.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -21,8 +24,6 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends BaseStatefulState<MainPage> {
-
-  FocusNode connectionListFocusNode = FocusNode();
 
   @override
   void dispose() {
@@ -218,11 +219,111 @@ class _MainPageState extends BaseStatefulState<MainPage> {
   Widget opened(NewConnectionData connection, MainPageData mainPageData) {
     var connectionDetail = mainPageData.connectedRedisMap[connection.id];
     return ExpansionTile(
-      title: Row(
+      initiallyExpanded: connectionDetail.expanded??false,
+      onExpansionChanged: (expanded) {
+        context.read<MainPageBloc>().add(ConnectionExpandEvent(connection.id, expanded));
+      },
+      title: Text(connection.redisName),
+      subtitle: Wrap(
+        alignment: WrapAlignment.end,
         children: [
-          Icon(Icons.check),
-          SizedBox(width: 5,),
-          Text(connection.redisName),
+          InkWell(
+            onTap: () {
+
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "服务器信息",
+                child: Icon(Icons.info_outlined),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "打开控制台",
+                child: Icon(Icons.android_outlined),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              context.read<NewConnectionBloc>().add(EditConnectionEvent(connection));
+              newConnectionDialog(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "编辑连接信息",
+                child: Icon(Icons.edit),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              context.read<NewConnectionBloc>().add(CopyConnectionEvent(connection));
+              newConnectionDialog(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Tooltip(
+                message: "复制连接信息",
+                child: Icon(Icons.copy),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              Redis.instance.close(connection.id).then((value) {
+                context.read<MainPageBloc>().add(ConnectionCloseEvent(connection.id));
+              }).catchError((e) {
+                BotToast.showText(text: "断开连接失败！");
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Tooltip(
+                message: "断开连接",
+                child: Icon(Icons.link_off),
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () async {
+              bool deleteConfirm = await NAlertDialog(
+                dialogStyle: DialogStyle(titleDivider: true),
+                title: Text("删除连接"),
+                content: Text("确定要删除连接【${connection.redisName}】吗？"),
+                actions: <Widget>[
+                  FlatButton(child: Text("取消", style: TextStyle(color: Colors.white),),onPressed: () {
+                    Navigator.pop(context, false);
+                  }),
+                  FlatButton(child: Text("删除", style: TextStyle(color: Colors.red),),onPressed: () {
+                    Navigator.pop(context, true);
+                  }),
+                ],
+              ).show(context);
+              if(deleteConfirm??false) {
+                await Redis.instance.close(connection.id).then((value) {
+                  context.read<MainPageBloc>().add(ConnectionCloseEvent(connection.id));
+                });
+                var finder = Finder(filter: Filter.equals('id', connection.id), limit: 1);
+                await intMapStoreFactory.store("t_connection").delete(Application.db, finder: finder);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Tooltip(
+                message: "删除连接",
+                child: Icon(Icons.delete),
+              ),
+            ),
+          ),
         ],
       ),
       expandedAlignment: Alignment.topLeft,
@@ -243,7 +344,5 @@ class _MainPageState extends BaseStatefulState<MainPage> {
       }).values.toList() : [],
     );
   }
-
-
 
 }

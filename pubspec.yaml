@@ -20,6 +20,7 @@ dependencies:
   after_init: ^0.1.2
   bot_toast: ^3.0.5
   pigment: 1.0.3
+  logger: ^0.9.4
   # 错误捕获上报等操作
   catcher: ^0.3.22
   uuid: ^2.2.2
@@ -33,6 +34,7 @@ dependencies:
   # sqflite_common_ffi: ^1.1.1
   # flutter_simple_treeview: ^2.0.2
   getwidget: ^1.2.4
+  ndialog: ^3.1.0
 
 dependency_overrides:
   analyzer: ^0.41.1
