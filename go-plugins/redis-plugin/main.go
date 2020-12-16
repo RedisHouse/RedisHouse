@@ -78,9 +78,7 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	if _, ok := argsMap["useSSHTunnel"]; ok {
-		client, err := getSSHClient(argsMap["sshUser"].(string), argsMap["sshPassword"].(string),
-			argsMap["sshPrivateKey"].(string), argsMap["sshPrivateKeyPassword"].(string),
-			argsMap["sshAddress"].(string)+":"+argsMap["sshPort"].(string))
+		client, err := getSSHClient(argsMap)
 
 		if err != nil {
 			return nil, err
@@ -107,10 +105,7 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	if _, ok := argsMap["useSSHTunnel"]; ok {
-		client, err := getSSHClient(argsMap["sshUser"].(string), argsMap["sshPassword"].(string),
-			argsMap["sshPrivateKey"].(string), argsMap["sshPrivateKeyPassword"].(string),
-			argsMap["sshAddress"].(string)+":"+argsMap["sshPort"].(string))
-
+		client, err := getSSHClient(argsMap)
 		if err != nil {
 			return nil, err
 		}
