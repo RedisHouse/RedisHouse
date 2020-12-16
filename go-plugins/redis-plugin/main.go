@@ -100,11 +100,11 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 		DB:   0, // use default DB
 	}
 
-	if _, ok := argsMap["redisPassword"]; ok && argsMap["useSSHTunnel"].(bool) {
+	if _, ok := argsMap["redisPassword"]; ok {
 		option.Password = argsMap["redisPassword"].(string)
 	}
 
-	if _, ok := argsMap["useSSHTunnel"]; ok {
+	if _, ok := argsMap["useSSHTunnel"]; ok && argsMap["useSSHTunnel"].(bool) {
 		client, err := getSSHClient(argsMap)
 		if err != nil {
 			return nil, err
