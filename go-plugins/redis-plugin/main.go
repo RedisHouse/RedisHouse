@@ -19,7 +19,7 @@ type RedisPlugin struct {
 }
 
 var _ flutter.Plugin = &RedisPlugin{}
-var pool_size = 20
+var pool_size = 100
 
 type Connection struct {
 	id                    string
@@ -172,6 +172,7 @@ func closeSession(arguments interface{}) (reply interface{}, err error) {
 	}
 	session := sessionsMap[argsMap["sessionID"].(string)]
 	session.Conn.Close()
+	delete(sessionsMap, argsMap["sessionID"].(string))
 	return nil, nil
 }
 
