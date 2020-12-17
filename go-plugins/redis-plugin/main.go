@@ -1,13 +1,11 @@
 package redis_plugin
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net"
 	"strings"
-	"time"
 
 	redigo "github.com/garyburd/redigo/redis"
 	flutter "github.com/go-flutter-desktop/go-flutter"
@@ -41,16 +39,21 @@ type Connection struct {
 	sshPrivateKeyPassword string
 }
 
+type Session struct {
+	ID     string
+	Conn   redigo.Conn
+}
+
 var poolsMap map[string]*redigo.Pool = make(map[string]*redigo.Pool)
-var ctx = context.Background()
+var poolsSessionsMap map[string]map[string]Session = make(map[string]map[string]Session)
 
 func (p *RedisPlugin) InitPlugin(messenger plugin.BinaryMessenger) error {
 
 	p.channel = plugin.NewMethodChannel(messenger, channelName, plugin.StandardMethodCodec{})
 	p.channel.HandleFunc("connectTo", connectTo)
+	p.channel.HandleFunc("createSession", createSession)
+	p.channel.HandleFunc("closeSession", closeSession)
 	p.channel.HandleFunc("ping", ping)
-	p.channel.HandleFunc("get", get)
-	p.channel.HandleFunc("set", set)
 	p.channel.HandleFunc("do", do)
 	p.channel.HandleFunc("close", close)
 	p.channel.HandleFunc("getError", getErrorFunc)
@@ -113,13 +116,120 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 			return c, nil
 		}, pool_size)
 
-	pong, err := pool.Get().Do("ping")
+	redisConn := pool.Get()
+
+	pong, err := redisConn.Do("ping")
 	if err != nil || pong.(string) != "PONG" {
 		log.Fatal("redis connect failed", err)
 		return nil, err
 	}
+	redisConn.Close()
+
 	poolsMap[argsMap["id"].(string)] = pool
 	return
+}
+
+func createSession(arguments interface{}) (reply interface{}, err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+	if _, ok := poolsMap[argsMap["id"].(string)]; !ok {
+		return false, errors.New("pool 不存在！")
+	}
+
+	if _, ok := poolsSessionsMap[argsMap["id"].(string)]; !ok {
+		poolsSessionsMap[argsMap["id"].(string)] = make(map[string]Session)
+	}
+
+	sessionsMap := poolsSessionsMap[argsMap["id"].(string)]
+	if _, ok := sessionsMap[argsMap["sessionID"].(string)]; ok {
+		return nil, errors.New("sessionID 已存在！")
+	}
+
+	pool := poolsMap[argsMap["id"].(string)]
+	redisConn := pool.Get()
+
+	sessionsMap[argsMap["sessionID"].(string)] = Session{
+		ID:   argsMap["sessionID"].(string),
+		Conn: redisConn,
+	}
+	return nil, nil
+}
+
+func closeSession(arguments interface{}) (reply interface{}, err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+	if _, ok := poolsMap[argsMap["id"].(string)]; !ok {
+		return false, errors.New("pool 不存在！")
+	}
+
+	if _, ok := poolsSessionsMap[argsMap["id"].(string)]; !ok {
+		poolsSessionsMap[argsMap["id"].(string)] = make(map[string]Session)
+	}
+
+	sessionsMap := poolsSessionsMap[argsMap["id"].(string)]
+	if _, ok := sessionsMap[argsMap["sessionID"].(string)]; !ok {
+		return nil, errors.New("sessionID 不存在！")
+	}
+	session := sessionsMap[argsMap["sessionID"].(string)]
+	session.Conn.Close()
+	return nil, nil
+}
+
+func do(arguments interface{}) (reply interface{}, err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+	if _, ok := poolsMap[argsMap["id"].(string)]; !ok {
+		return false, errors.New("pool 不存在！")
+	}
+
+	if _, ok := poolsSessionsMap[argsMap["id"].(string)]; !ok {
+		poolsSessionsMap[argsMap["id"].(string)] = make(map[string]Session)
+	}
+
+	sessionsMap := poolsSessionsMap[argsMap["id"].(string)]
+	if _, ok := sessionsMap[argsMap["sessionID"].(string)]; !ok {
+		return nil, errors.New("sessionID 不存在！")
+	}
+
+	redisConn := sessionsMap[argsMap["sessionID"].(string)].Conn
+
+	strFields := strings.Fields(argsMap["command"].(string))
+	log.Println(strFields)
+	args := make([]interface{}, len(strFields)-1)
+	for i, v := range strFields[1:] {
+		args[i] = v
+	}
+
+	var res []string
+	if len(args) == 0 {
+		res, err = redigo.Strings(redisConn.Do(strFields[0]))
+	} else {
+		res, err = redigo.Strings(redisConn.Do(strFields[0], args...))
+	}
+	var sectionList = make([]interface{}, len(res))
+	for i, v := range res {
+		sectionList[i] = v
+	}
+	return sectionList, err
+}
+
+func close(arguments interface{}) (reply interface{}, err error) {
+
+	argsMap := arguments.(map[interface{}]interface{})
+
+	if _, ok := poolsSessionsMap[argsMap["id"].(string)]; ok {
+		delete(poolsSessionsMap[argsMap["id"].(string)], argsMap["id"].(string))
+	}
+
+	if _, ok := poolsMap[argsMap["id"].(string)]; ok {
+		pool := poolsMap[argsMap["id"].(string)]
+		err = pool.Close()
+		if err != nil {
+			return nil, err
+		}
+		delete(poolsMap, argsMap["id"].(string))
+	}
+	return nil, err
 }
 
 func ping(arguments interface{}) (reply interface{}, err error) {
@@ -167,79 +277,6 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 	return
 }
 
-func get(arguments interface{}) (reply interface{}, err error) {
-
-	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := poolsMap[argsMap["id"].(string)]
-	if !ok {
-		return nil, errors.New("尚未连接！")
-	}
-
-	pool := poolsMap[argsMap["id"].(string)]
-	redisConn := pool.Get()
-	return redigo.String(redisConn.Do("GET", argsMap["key"].(string)))
-}
-
-func set(arguments interface{}) (reply interface{}, err error) {
-
-	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := poolsMap[argsMap["id"].(string)]
-	if !ok {
-		return nil, errors.New("尚未连接！")
-	}
-
-	pool := poolsMap[argsMap["id"].(string)]
-	redisConn := pool.Get()
-	return redisConn.Do("SET", argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32)))
-}
-
-func do(arguments interface{}) (reply interface{}, err error) {
-
-	argsMap := arguments.(map[interface{}]interface{})
-
-	_, ok := poolsMap[argsMap["id"].(string)]
-	if !ok {
-		return false, errors.New("尚未连接！")
-	}
-	pool := poolsMap[argsMap["id"].(string)]
-
-	strFields := strings.Fields(argsMap["command"].(string))
-	log.Println(strFields)
-	args := make([]interface{}, len(strFields) - 1)
-	for i, v := range strFields[1:] {
-		args[i] = v
-	}
-
-	redisConn := pool.Get()
-	var res []string
-
-	if len(args) == 0 {
-		res, err = redigo.Strings(redisConn.Do(strFields[0]))
-	} else {
-		res, err = redigo.Strings(redisConn.Do(strFields[0], args...))
-	}
-	var sectionList = make([]interface{}, len(res))
-	for i, v := range res {
-		sectionList[i] = v
-	}
-	return sectionList, err
-}
-
-func close(arguments interface{}) (reply interface{}, err error) {
-
-	argsMap := arguments.(map[interface{}]interface{})
-	_, ok := poolsMap[argsMap["id"].(string)]
-	if !ok {
-		return nil, errors.New("尚未连接！")
-	}
-	pool := poolsMap[argsMap["id"].(string)]
-	err = pool.Close()
-	if err == nil {
-		delete(poolsMap, argsMap["id"].(string))
-	}
-	return nil, err
-}
-
 func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
 	method := methodCall.(plugin.MethodCall)
 	// return the randomized Method Name
@@ -249,3 +286,5 @@ func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
 func getErrorFunc(arguments interface{}) (reply interface{}, err error) {
 	return nil, plugin.NewError("customErrorCode", errors.New("Some error"))
 }
+
+
