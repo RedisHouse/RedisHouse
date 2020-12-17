@@ -40,8 +40,8 @@ type Connection struct {
 }
 
 type Session struct {
-	ID     string
-	Conn   redigo.Conn
+	ID   string
+	Conn redigo.Conn
 }
 
 var poolsMap map[string]*redigo.Pool = make(map[string]*redigo.Pool)
@@ -176,6 +176,14 @@ func closeSession(arguments interface{}) (reply interface{}, err error) {
 	return nil, nil
 }
 
+/*
+Redis type              Go type
+error                   redis.Error
+integer                 int64
+simple string           string
+bulk string             []byte or nil if value not present.
+array                   []interface{} or nil if value not present.
+*/
 func do(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
@@ -201,17 +209,40 @@ func do(arguments interface{}) (reply interface{}, err error) {
 		args[i] = v
 	}
 
-	var res []string
+	var res interface{}
 	if len(args) == 0 {
-		res, err = redigo.Strings(redisConn.Do(strFields[0]))
+		res, err = redisConn.Do(strFields[0])
 	} else {
-		res, err = redigo.Strings(redisConn.Do(strFields[0], args...))
+		res, err = redisConn.Do(strFields[0], args...)
 	}
-	var sectionList = make([]interface{}, len(res))
-	for i, v := range res {
-		sectionList[i] = v
+
+	if err != nil {
+		return nil, err
 	}
-	return sectionList, err
+
+	switch r := res.(type) {
+	default:
+		return nil, errors.New("unexpected type")
+	case redigo.Error:
+		return nil, r
+	case int64:
+		return redigo.Int64(res, err)
+	case string:
+		return redigo.String(res, err)
+	case []byte:
+		return redigo.String(res, err)
+	case []interface{}:
+		iterfaceRes, err := redigo.Strings(res, err)
+		if err != nil {
+			return nil, err
+		}
+		var sectionList = make([]interface{}, len(r))
+		for i, v := range iterfaceRes {
+			sectionList[i] = v
+		}
+		return sectionList, err
+	}
+	return nil, nil
 }
 
 func close(arguments interface{}) (reply interface{}, err error) {
@@ -287,5 +318,3 @@ func catchAllTest(methodCall interface{}) (reply interface{}, err error) {
 func getErrorFunc(arguments interface{}) (reply interface{}, err error) {
 	return nil, plugin.NewError("customErrorCode", errors.New("Some error"))
 }
-
-
