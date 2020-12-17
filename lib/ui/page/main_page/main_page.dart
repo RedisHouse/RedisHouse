@@ -269,8 +269,16 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
               controller: tabController,
             ),
             Expanded(
-              child: panelWidgetMap[state.panelList[state.activePanelIndex].uuid],
-            )
+              child: IndexedStack(
+                index: state.activePanelIndex,
+                children: state.panelList.map((item) {
+                  return panelWidgetMap[item.uuid];
+                }).toList(),
+              ),
+            ),
+            // Expanded(
+            //   child: panelWidgetMap[state.panelList[state.activePanelIndex].uuid],
+            // )
           ],
         );
       }
