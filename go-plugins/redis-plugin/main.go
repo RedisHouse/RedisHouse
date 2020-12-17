@@ -176,7 +176,8 @@ func get(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	pool := poolsMap[argsMap["id"].(string)]
-	return redigo.String(pool.Get().Do("GET", argsMap["key"].(string)))
+	redisConn := pool.Get()
+	return redigo.String(redisConn.Do("GET", argsMap["key"].(string)))
 }
 
 func set(arguments interface{}) (reply interface{}, err error) {
@@ -188,7 +189,8 @@ func set(arguments interface{}) (reply interface{}, err error) {
 	}
 
 	pool := poolsMap[argsMap["id"].(string)]
-	return pool.Get().Do("SET", argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32)))
+	redisConn := pool.Get()
+	return redisConn.Do("SET", argsMap["key"].(string), argsMap["value"].(string), time.Duration(argsMap["expiration"].(int32)))
 }
 
 func do(arguments interface{}) (reply interface{}, err error) {
@@ -199,7 +201,7 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	if !ok {
 		return false, errors.New("尚未连接！")
 	}
-	c := poolsMap[argsMap["id"].(string)]
+	pool := poolsMap[argsMap["id"].(string)]
 
 	strFields := strings.Fields(argsMap["command"].(string))
 	log.Println(strFields)
@@ -208,12 +210,13 @@ func do(arguments interface{}) (reply interface{}, err error) {
 		args[i] = v
 	}
 
+	redisConn := pool.Get()
 	var res []string
 
 	if len(args) == 0 {
-		res, err = redigo.Strings(c.Get().Do(strFields[0]))
+		res, err = redigo.Strings(redisConn.Do(strFields[0]))
 	} else {
-		res, err = redigo.Strings(c.Get().Do(strFields[0], args...))
+		res, err = redigo.Strings(redisConn.Do(strFields[0], args...))
 	}
 	var sectionList = make([]interface{}, len(res))
 	for i, v := range res {
