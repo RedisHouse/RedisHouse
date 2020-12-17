@@ -16,7 +16,7 @@ class _$MainPageData extends MainPageData {
   @override
   final BuiltList<PanelInfo> panelList;
   @override
-  final String activePanelUuid;
+  final int activePanelIndex;
 
   factory _$MainPageData([void Function(MainPageDataBuilder) updates]) =>
       (new MainPageDataBuilder()..update(updates)).build();
@@ -26,7 +26,7 @@ class _$MainPageData extends MainPageData {
       this.logOpen,
       this.connectedRedisMap,
       this.panelList,
-      this.activePanelUuid})
+      this.activePanelIndex})
       : super._();
 
   @override
@@ -44,7 +44,7 @@ class _$MainPageData extends MainPageData {
         logOpen == other.logOpen &&
         connectedRedisMap == other.connectedRedisMap &&
         panelList == other.panelList &&
-        activePanelUuid == other.activePanelUuid;
+        activePanelIndex == other.activePanelIndex;
   }
 
   @override
@@ -54,7 +54,7 @@ class _$MainPageData extends MainPageData {
             $jc($jc($jc(0, redisListOpen.hashCode), logOpen.hashCode),
                 connectedRedisMap.hashCode),
             panelList.hashCode),
-        activePanelUuid.hashCode));
+        activePanelIndex.hashCode));
   }
 
   @override
@@ -64,7 +64,7 @@ class _$MainPageData extends MainPageData {
           ..add('logOpen', logOpen)
           ..add('connectedRedisMap', connectedRedisMap)
           ..add('panelList', panelList)
-          ..add('activePanelUuid', activePanelUuid))
+          ..add('activePanelIndex', activePanelIndex))
         .toString();
   }
 }
@@ -95,10 +95,10 @@ class MainPageDataBuilder
   set panelList(ListBuilder<PanelInfo> panelList) =>
       _$this._panelList = panelList;
 
-  String _activePanelUuid;
-  String get activePanelUuid => _$this._activePanelUuid;
-  set activePanelUuid(String activePanelUuid) =>
-      _$this._activePanelUuid = activePanelUuid;
+  int _activePanelIndex;
+  int get activePanelIndex => _$this._activePanelIndex;
+  set activePanelIndex(int activePanelIndex) =>
+      _$this._activePanelIndex = activePanelIndex;
 
   MainPageDataBuilder();
 
@@ -108,7 +108,7 @@ class MainPageDataBuilder
       _logOpen = _$v.logOpen;
       _connectedRedisMap = _$v.connectedRedisMap?.toBuilder();
       _panelList = _$v.panelList?.toBuilder();
-      _activePanelUuid = _$v.activePanelUuid;
+      _activePanelIndex = _$v.activePanelIndex;
       _$v = null;
     }
     return this;
@@ -137,7 +137,7 @@ class MainPageDataBuilder
               logOpen: logOpen,
               connectedRedisMap: _connectedRedisMap?.build(),
               panelList: _panelList?.build(),
-              activePanelUuid: activePanelUuid);
+              activePanelIndex: activePanelIndex);
     } catch (_) {
       String _$failedField;
       try {

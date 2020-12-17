@@ -30,18 +30,18 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStateMixin {
 
-
   TabController tabController;
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 2, vsync: this);
+    tabController = TabController(length: 0, vsync: this);
   }
 
   @override
   void dispose() {
     super.dispose();
+    tabController?.removeListener(tabChangedListener);
     tabController?.dispose();
   }
 
@@ -197,6 +197,9 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
   }
 
   Map<String, Widget> panelWidgetMap = Map();
+  void tabChangedListener () {
+    context.read<MainPageBloc>().add(PanelActiveEvent(tabController.index));
+  }
 
   Widget panelContainer() {
     return BlocBuilder<MainPageBloc, MainPageData>(
@@ -206,9 +209,28 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
             child: Center(child: Text("Redis House.", style: TextStyle(fontSize: 50),)),
           );
         }
+        var uuidList = state.panelList.map((item) => item.uuid);
+        panelWidgetMap.removeWhere((key, value) => !uuidList.contains(key));
+        state.panelList.asList().forEach((element) {
+          var panelWidget = panelWidgetMap[element.uuid];
+          if(panelWidget == null) {
+              if(StringUtil.isEqual("console", element.type)) {
+                panelWidget = ConsolePanel();
+              } else if(StringUtil.isEqual("db", element.type)) {
+                panelWidget =  DatabasePanel();
+              } else if(StringUtil.isEqual("info", element.type)) {
+                panelWidget =  InfoPanel();
+              } else {
+                panelWidget =  Container();
+              }
+              panelWidgetMap[element.uuid] = panelWidget;
+          }
+        });
         if(state.panelList.length != tabController.length) {
-          tabController.dispose();
-          tabController = TabController(length: state.panelList.length, vsync: this);
+          tabController?.removeListener(tabChangedListener);
+          tabController?.dispose();
+          tabController = TabController(length: state.panelList.length, initialIndex: state.activePanelIndex, vsync: this);
+          tabController.addListener(tabChangedListener);
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,7 +238,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
             ExtendedTabBar(
               indicator: const ColorTabIndicator(Colors.blue),
               isScrollable: true,
-              tabs: state.panelList.map((item) {
+              tabs: state.panelList.asMap().map((index, item) {
                 var icon = Icon(Icons.cloud_circle_sharp, size: 20,);
                 if(StringUtil.isEqual("console", item.type)) {
                   icon = Icon(Icons.web_asset, size: 20,);
@@ -225,7 +247,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                 } else if(StringUtil.isEqual("info", item.type)) {
                   icon = Icon(Icons.info, size: 20,);
                 }
-                return Row(
+                return MapEntry(index, Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     icon,
@@ -234,7 +256,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                     SizedBox(width: 10,),
                     InkWell(
                       onTap: () async {
-                        context.read<MainPageBloc>().add(PanelCloseEvent(item.uuid));
+                        context.read<MainPageBloc>().add(PanelCloseEvent(index));
                       },
                       child: Tooltip(
                         message: "关闭窗口",
@@ -242,27 +264,12 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                       ),
                     ),
                   ],
-                );
-              }).toList(),
+                ));
+              }).values.toList(),
               controller: tabController,
             ),
             Expanded(
-              child: ExtendedTabBarView(
-                children: state.panelList.map((item) {
-                  if(StringUtil.isEqual("console", item.type)) {
-                    return ConsolePanel();
-                  } else if(StringUtil.isEqual("db", item.type)) {
-                    return DatabasePanel();
-                  } else if(StringUtil.isEqual("info", item.type)) {
-                    return InfoPanel();
-                  } else {
-                    return Container();
-                  }
-                }).toList(),
-                cacheExtent: null,
-                controller: tabController,
-                physics: NeverScrollableScrollPhysics(),
-              ),
+              child: panelWidgetMap[state.panelList[state.activePanelIndex].uuid],
             )
           ],
         );

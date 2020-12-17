@@ -20,7 +20,7 @@ abstract class MainPageData implements Built<MainPageData, MainPageDataBuilder> 
   BuiltList<PanelInfo> get panelList;
 
   @nullable
-  String get activePanelUuid;
+  int get activePanelIndex;
 
   MainPageData._();
   factory MainPageData([updates(MainPageDataBuilder b)]) = _$MainPageData;

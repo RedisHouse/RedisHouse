@@ -58,12 +58,32 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
             ..dbIndex=event.dbIndex
         ));
         b.panelList = panelListBuilder;
+        b.activePanelIndex = b.panelList.length - 1;
       });
     } else if(event is PanelCloseEvent) {
       yield state.rebuild((b) {
         var panelListBuilder = b.panelList;
-        panelListBuilder.removeWhere((item) => StringUtil.isEqual(item.uuid, event.uuid));
+        // panelListBuilder.removeWhere((item) => StringUtil.isEqual(item.uuid, event.uuid));
+        var currentIndex = b.activePanelIndex;
+        if(event.index <= currentIndex) {
+          currentIndex -= 1;
+        }
+        if(currentIndex < 0) currentIndex = 0;
+
+        panelListBuilder.removeAt(event.index);
         b.panelList = panelListBuilder;
+
+        b.activePanelIndex = currentIndex;
+      });
+    } else if(event is PanelActiveEvent) {
+      yield state.rebuild((b) {
+        // int index = 0;
+        // for(int i = 0; i < b.panelList.length; i++) {
+        //   if(StringUtil.isEqual(event.uuid, b.panelList[i].uuid)) {
+        //     index = i;
+        //   }
+        // }
+        b..activePanelIndex = event.index;
       });
     }
   }
@@ -107,6 +127,11 @@ class PanelOpenEvent extends MainPageEvent {
 }
 
 class PanelCloseEvent extends MainPageEvent {
-  String uuid;
-  PanelCloseEvent(this.uuid,);
+  int index;
+  PanelCloseEvent(this.index,);
+}
+
+class PanelActiveEvent extends MainPageEvent {
+  int index;
+  PanelActiveEvent(this.index,);
 }
