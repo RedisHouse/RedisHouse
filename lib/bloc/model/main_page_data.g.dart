@@ -13,11 +13,20 @@ class _$MainPageData extends MainPageData {
   final bool logOpen;
   @override
   final BuiltMap<String, ConnectionDetail> connectedRedisMap;
+  @override
+  final BuiltList<PanelInfo> panelList;
+  @override
+  final String activePanelUuid;
 
   factory _$MainPageData([void Function(MainPageDataBuilder) updates]) =>
       (new MainPageDataBuilder()..update(updates)).build();
 
-  _$MainPageData._({this.redisListOpen, this.logOpen, this.connectedRedisMap})
+  _$MainPageData._(
+      {this.redisListOpen,
+      this.logOpen,
+      this.connectedRedisMap,
+      this.panelList,
+      this.activePanelUuid})
       : super._();
 
   @override
@@ -33,13 +42,19 @@ class _$MainPageData extends MainPageData {
     return other is MainPageData &&
         redisListOpen == other.redisListOpen &&
         logOpen == other.logOpen &&
-        connectedRedisMap == other.connectedRedisMap;
+        connectedRedisMap == other.connectedRedisMap &&
+        panelList == other.panelList &&
+        activePanelUuid == other.activePanelUuid;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, redisListOpen.hashCode), logOpen.hashCode),
-        connectedRedisMap.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc($jc($jc(0, redisListOpen.hashCode), logOpen.hashCode),
+                connectedRedisMap.hashCode),
+            panelList.hashCode),
+        activePanelUuid.hashCode));
   }
 
   @override
@@ -47,7 +62,9 @@ class _$MainPageData extends MainPageData {
     return (newBuiltValueToStringHelper('MainPageData')
           ..add('redisListOpen', redisListOpen)
           ..add('logOpen', logOpen)
-          ..add('connectedRedisMap', connectedRedisMap))
+          ..add('connectedRedisMap', connectedRedisMap)
+          ..add('panelList', panelList)
+          ..add('activePanelUuid', activePanelUuid))
         .toString();
   }
 }
@@ -72,6 +89,17 @@ class MainPageDataBuilder
           MapBuilder<String, ConnectionDetail> connectedRedisMap) =>
       _$this._connectedRedisMap = connectedRedisMap;
 
+  ListBuilder<PanelInfo> _panelList;
+  ListBuilder<PanelInfo> get panelList =>
+      _$this._panelList ??= new ListBuilder<PanelInfo>();
+  set panelList(ListBuilder<PanelInfo> panelList) =>
+      _$this._panelList = panelList;
+
+  String _activePanelUuid;
+  String get activePanelUuid => _$this._activePanelUuid;
+  set activePanelUuid(String activePanelUuid) =>
+      _$this._activePanelUuid = activePanelUuid;
+
   MainPageDataBuilder();
 
   MainPageDataBuilder get _$this {
@@ -79,6 +107,8 @@ class MainPageDataBuilder
       _redisListOpen = _$v.redisListOpen;
       _logOpen = _$v.logOpen;
       _connectedRedisMap = _$v.connectedRedisMap?.toBuilder();
+      _panelList = _$v.panelList?.toBuilder();
+      _activePanelUuid = _$v.activePanelUuid;
       _$v = null;
     }
     return this;
@@ -105,12 +135,16 @@ class MainPageDataBuilder
           new _$MainPageData._(
               redisListOpen: redisListOpen,
               logOpen: logOpen,
-              connectedRedisMap: _connectedRedisMap?.build());
+              connectedRedisMap: _connectedRedisMap?.build(),
+              panelList: _panelList?.build(),
+              activePanelUuid: activePanelUuid);
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'connectedRedisMap';
         _connectedRedisMap?.build();
+        _$failedField = 'panelList';
+        _panelList?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'MainPageData', _$failedField, e.toString());
@@ -230,6 +264,142 @@ class ConnectionDetailBuilder
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'ConnectionDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$PanelInfo extends PanelInfo {
+  @override
+  final String uuid;
+  @override
+  final String type;
+  @override
+  final String name;
+  @override
+  final NewConnectionData connection;
+  @override
+  final String dbIndex;
+
+  factory _$PanelInfo([void Function(PanelInfoBuilder) updates]) =>
+      (new PanelInfoBuilder()..update(updates)).build();
+
+  _$PanelInfo._(
+      {this.uuid, this.type, this.name, this.connection, this.dbIndex})
+      : super._();
+
+  @override
+  PanelInfo rebuild(void Function(PanelInfoBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  PanelInfoBuilder toBuilder() => new PanelInfoBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is PanelInfo &&
+        uuid == other.uuid &&
+        type == other.type &&
+        name == other.name &&
+        connection == other.connection &&
+        dbIndex == other.dbIndex;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(
+        $jc($jc($jc($jc(0, uuid.hashCode), type.hashCode), name.hashCode),
+            connection.hashCode),
+        dbIndex.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('PanelInfo')
+          ..add('uuid', uuid)
+          ..add('type', type)
+          ..add('name', name)
+          ..add('connection', connection)
+          ..add('dbIndex', dbIndex))
+        .toString();
+  }
+}
+
+class PanelInfoBuilder implements Builder<PanelInfo, PanelInfoBuilder> {
+  _$PanelInfo _$v;
+
+  String _uuid;
+  String get uuid => _$this._uuid;
+  set uuid(String uuid) => _$this._uuid = uuid;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  String _name;
+  String get name => _$this._name;
+  set name(String name) => _$this._name = name;
+
+  NewConnectionDataBuilder _connection;
+  NewConnectionDataBuilder get connection =>
+      _$this._connection ??= new NewConnectionDataBuilder();
+  set connection(NewConnectionDataBuilder connection) =>
+      _$this._connection = connection;
+
+  String _dbIndex;
+  String get dbIndex => _$this._dbIndex;
+  set dbIndex(String dbIndex) => _$this._dbIndex = dbIndex;
+
+  PanelInfoBuilder();
+
+  PanelInfoBuilder get _$this {
+    if (_$v != null) {
+      _uuid = _$v.uuid;
+      _type = _$v.type;
+      _name = _$v.name;
+      _connection = _$v.connection?.toBuilder();
+      _dbIndex = _$v.dbIndex;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(PanelInfo other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$PanelInfo;
+  }
+
+  @override
+  void update(void Function(PanelInfoBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$PanelInfo build() {
+    _$PanelInfo _$result;
+    try {
+      _$result = _$v ??
+          new _$PanelInfo._(
+              uuid: uuid,
+              type: type,
+              name: name,
+              connection: _connection?.build(),
+              dbIndex: dbIndex);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'connection';
+        _connection?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'PanelInfo', _$failedField, e.toString());
       }
       rethrow;
     }

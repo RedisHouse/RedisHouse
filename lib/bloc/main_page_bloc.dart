@@ -3,6 +3,9 @@ import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:redis_house/bloc/base/base_bloc.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
+import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/util/string_util.dart';
+import 'package:uuid/uuid.dart';
 
 class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
 
@@ -41,6 +44,27 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
         var detail = b.connectedRedisMap[event.connectionId];
         b.connectedRedisMap[event.connectionId] = detail.rebuild((b) => b.expanded=event.expanded);
       });
+    } else if(event is PanelOpenEvent) {
+      yield state.rebuild((b) {
+        var panelListBuilder = b.panelList;
+        if(panelListBuilder == null) {
+          panelListBuilder = BuiltList<PanelInfo>().toBuilder();
+        }
+        panelListBuilder.add(PanelInfo((b) => b
+            ..uuid=Uuid().v1()
+            ..type=event.type
+            ..name=event.connection.redisName
+            ..connection=event.connection.toBuilder()
+            ..dbIndex=event.dbIndex
+        ));
+        b.panelList = panelListBuilder;
+      });
+    } else if(event is PanelCloseEvent) {
+      yield state.rebuild((b) {
+        var panelListBuilder = b.panelList;
+        panelListBuilder.removeWhere((item) => StringUtil.isEqual(item.uuid, event.uuid));
+        b.panelList = panelListBuilder;
+      });
     }
   }
 
@@ -73,4 +97,16 @@ class ConnectionExpandEvent extends MainPageEvent {
   String connectionId;
   bool expanded;
   ConnectionExpandEvent(this.connectionId, this.expanded);
+}
+
+class PanelOpenEvent extends MainPageEvent {
+  String type;
+  NewConnectionData connection;
+  String dbIndex;
+  PanelOpenEvent(this.type, this.connection, this.dbIndex);
+}
+
+class PanelCloseEvent extends MainPageEvent {
+  String uuid;
+  PanelCloseEvent(this.uuid,);
 }

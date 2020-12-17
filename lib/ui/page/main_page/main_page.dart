@@ -1,5 +1,6 @@
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:extended_tabs/extended_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,10 @@ import 'package:redis_house/router/application.dart';
 import 'package:redis_house/ui/page/main_page/component/main_page_frame.dart';
 import 'package:redis_house/ui/page/base_page/base_stateful_state.dart';
 import 'package:redis_house/ui/page/main_page/dialog/connection_new_dialog.dart';
+import 'package:redis_house/ui/page/main_page/panel/console_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/database_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/info_panel.dart';
+import 'package:redis_house/util/string_util.dart';
 import 'package:sembast/sembast.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,12 +28,21 @@ class MainPage extends StatefulWidget {
   }
 }
 
-class _MainPageState extends BaseStatefulState<MainPage> {
+class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStateMixin {
+
+
+  TabController tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void dispose() {
     super.dispose();
-
+    tabController?.dispose();
   }
 
   @override
@@ -137,9 +151,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
                     child: connectionList(state),
                   ),
                 ),
-                Expanded(child: Container(
-                  child: Center(child: Text("Redis House.", style: TextStyle(fontSize: 50),)),
-                )),
+                Expanded(child: panelContainer()),
                 Offstage(
                   offstage: !(state.logOpen??false),
                   child: Container(
@@ -184,6 +196,80 @@ class _MainPageState extends BaseStatefulState<MainPage> {
     );
   }
 
+  Map<String, Widget> panelWidgetMap = Map();
+
+  Widget panelContainer() {
+    return BlocBuilder<MainPageBloc, MainPageData>(
+      builder: (context, state) {
+        if(state.panelList == null || state.panelList.length == 0) {
+          return Container(
+            child: Center(child: Text("Redis House.", style: TextStyle(fontSize: 50),)),
+          );
+        }
+        if(state.panelList.length != tabController.length) {
+          tabController.dispose();
+          tabController = TabController(length: state.panelList.length, vsync: this);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            ExtendedTabBar(
+              indicator: const ColorTabIndicator(Colors.blue),
+              isScrollable: true,
+              tabs: state.panelList.map((item) {
+                var icon = Icon(Icons.cloud_circle_sharp, size: 20,);
+                if(StringUtil.isEqual("console", item.type)) {
+                  icon = Icon(Icons.web_asset, size: 20,);
+                } else if(StringUtil.isEqual("db", item.type)) {
+                  icon = Icon(Icons.table_view, size: 20,);
+                } else if(StringUtil.isEqual("info", item.type)) {
+                  icon = Icon(Icons.info, size: 20,);
+                }
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    icon,
+                    SizedBox(width: 5,),
+                    Text(item.name),
+                    SizedBox(width: 10,),
+                    InkWell(
+                      onTap: () async {
+                        context.read<MainPageBloc>().add(PanelCloseEvent(item.uuid));
+                      },
+                      child: Tooltip(
+                        message: "关闭窗口",
+                        child: Icon(Icons.close, size: 20,)
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+              controller: tabController,
+            ),
+            Expanded(
+              child: ExtendedTabBarView(
+                children: state.panelList.map((item) {
+                  if(StringUtil.isEqual("console", item.type)) {
+                    return ConsolePanel();
+                  } else if(StringUtil.isEqual("db", item.type)) {
+                    return DatabasePanel();
+                  } else if(StringUtil.isEqual("info", item.type)) {
+                    return InfoPanel();
+                  } else {
+                    return Container();
+                  }
+                }).toList(),
+                cacheExtent: null,
+                controller: tabController,
+                physics: NeverScrollableScrollPhysics(),
+              ),
+            )
+          ],
+        );
+      }
+    );
+  }
+
   Widget connectionList(MainPageData mainPageData) {
     return StreamBuilder<List<RecordSnapshot<int, Map>>>(
       stream: intMapStoreFactory.store("t_connection").query().onSnapshots(Application.db),
@@ -204,8 +290,11 @@ class _MainPageState extends BaseStatefulState<MainPage> {
   Widget unOpened(NewConnectionData connection, MainPageData mainPageData) {
     return ListTile(
       onTap: () async {
-        Redis.instance.connectTo(connection.toJson()).then((value) {
-          return Redis.instance.execute(connection.id, "CONFIG GET databases");
+        var sessionID = Uuid().v1();
+        Redis.instance.connectTo(connection.toJson()).then((value) async {
+          return Redis.instance.createSession(connection.id, sessionID);
+        }).then((value) {
+          return Redis.instance.execute(connection.id, sessionID, "CONFIG GET databases");
         }).then((value) {
           context.read<MainPageBloc>().add(ConnectionOpenEvent(connection.id, int.tryParse(value[1])));
         }).catchError((e) {
@@ -302,7 +391,7 @@ class _MainPageState extends BaseStatefulState<MainPage> {
           ),
           InkWell(
             onTap: () {
-              BotToast.showText(text: "服务器信息。");
+              context.read<MainPageBloc>().add(PanelOpenEvent("info", connection, ""));
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
@@ -314,13 +403,13 @@ class _MainPageState extends BaseStatefulState<MainPage> {
           ),
           InkWell(
             onTap: () {
-              BotToast.showText(text: "打开控制台。");
+              context.read<MainPageBloc>().add(PanelOpenEvent("console", connection, ""));
             },
             child: Padding(
               padding: const EdgeInsets.all(5),
               child: Tooltip(
                 message: "打开控制台",
-                child: Icon(Icons.android_outlined),
+                child: Icon(Icons.web_asset),
               ),
             ),
           ),
@@ -393,15 +482,46 @@ class _MainPageState extends BaseStatefulState<MainPage> {
       children: connectionDetail != null ? connectionDetail.dbKeyNumMap.map((key, value) {
         return MapEntry(
           key,
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.landscape),
-                SizedBox(width: 5,),
-                Text(key),
-              ],
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 35),
+                child: Row(
+                  children: [
+                    Icon(Icons.landscape),
+                    SizedBox(width: 5,),
+                    Text(key),
+                    Expanded(child: Container()),
+                    InkWell(
+                      onTap: () async {
+                        context.read<MainPageBloc>().add(PanelOpenEvent("db", connection, key.replaceAll("db", "")));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: Tooltip(
+                          message: "打开 DB",
+                          child: Icon(Icons.table_view),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        context.read<MainPageBloc>().add(PanelOpenEvent("console", connection, key.replaceAll("db", "")));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: Tooltip(
+                          message: "打开控制台",
+                          child: Icon(Icons.web_asset),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(),
+            ],
           ),
         );
       }).values.toList() : [],

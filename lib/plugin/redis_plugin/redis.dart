@@ -27,26 +27,25 @@ class Redis {
     });
   }
 
-  Future set(String connectionId, String key, String value) {
-    return _channel.invokeMethod("set", {
+  Future createSession(String connectionId, String sessionID) {
+    return _channel.invokeMethod("createSession", {
       "id": connectionId,
-      "key": key,
-      "value": value,
-      "expiration": 0
+      "sessionID": sessionID
     });
   }
 
-  Future<String> get(String connectionId, String key) {
-    return _channel.invokeMethod("get", {
+  Future closeSession(String connectionId, String sessionID) {
+    return _channel.invokeMethod("closeSession", {
       "id": connectionId,
-      "key": key
+      "sessionID": sessionID
     });
   }
 
-
-  Future execute(String connectionId, String command) {
+  Future execute(String connectionId, String sessionID, String command, {String db = "0",}) {
     return _channel.invokeMethod("do", {
       "id": connectionId,
+      "sessionID": sessionID,
+      "db": db,
       "command": command
     });
   }
