@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
+import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/util/string_util.dart';
 
@@ -33,6 +34,16 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
       return Redis.instance.execute(connection.id, panelData.uuid, "select $dbIndex");
     }).then((value) {
       BotToast.showText(text: "会话创建完成。");
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Redis.instance.closeSession(connectionId, widget.panelUUID).then((value) {
+      Log.i("Session 已关闭: [$connectionId]-[${widget.panelUUID}]");
+    }).catchError((e) {
+      Log.e("Session 关闭失败：[$connectionId]-[${widget.panelUUID}]");
     });
   }
 
