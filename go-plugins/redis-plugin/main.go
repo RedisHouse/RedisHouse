@@ -208,12 +208,12 @@ func readReply(ascReply interface{}) (reply interface{}, err error) {
 		return redigo.String(rep, err)
 	case []interface{}:
 		result := make([]interface{}, len(rep))
-		for _, v := range rep {
+		for i, v := range rep {
 			r, err := readReply(v)
 			if err != nil {
 				return nil, err
 			}
-			result = append(result, r)
+			result[i] = r
 		}
 		return result, err
 	}
@@ -260,7 +260,6 @@ func do(arguments interface{}) (reply interface{}, err error) {
 
 	strFields := strings.Fields(argsMap["command"].(string))
 	command := strFields[0]
-	log.Println(strFields)
 	args := make([]interface{}, len(strFields)-1)
 	for i, v := range strFields[1:] {
 		args[i] = v
@@ -272,7 +271,6 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	} else {
 		res, err = redisConn.Do(command, args...)
 	}
-
 	if err != nil {
 		return nil, err
 	}
