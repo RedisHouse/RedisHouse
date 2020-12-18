@@ -9,6 +9,7 @@ import 'package:redis_house/bloc/main_page_bloc.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
+import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/router/application.dart';
 import 'package:redis_house/ui/page/main_page/component/main_page_frame.dart';
@@ -247,23 +248,29 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                 } else if(StringUtil.isEqual("info", item.type)) {
                   icon = Icon(Icons.info, size: 20,);
                 }
-                return MapEntry(index, Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    icon,
-                    SizedBox(width: 5,),
-                    Text(item.name),
-                    SizedBox(width: 10,),
-                    InkWell(
-                      onTap: () async {
-                        context.read<MainPageBloc>().add(PanelCloseEvent(index));
-                      },
-                      child: Tooltip(
-                        message: "关闭窗口",
-                        child: Icon(Icons.close, size: 20,)
+                return MapEntry(index, GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onDoubleTap: () {
+                    context.read<MainPageBloc>().add(RedisListOpenEvent(!state.redisListOpen));
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      icon,
+                      SizedBox(width: 5,),
+                      Text(item.name),
+                      SizedBox(width: 10,),
+                      InkWell(
+                        onTap: () async {
+                          context.read<MainPageBloc>().add(PanelCloseEvent(index));
+                        },
+                        child: Tooltip(
+                          message: "关闭窗口",
+                          child: Icon(Icons.close, size: 20,)
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ));
               }).values.toList(),
               controller: tabController,
