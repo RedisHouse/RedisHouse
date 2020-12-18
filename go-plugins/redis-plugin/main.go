@@ -193,6 +193,33 @@ func (e *redError) Error() string {
 	return e.ErrCode
 }
 
+func readReply(ascReply interface{}) (reply interface{}, err error) {
+
+	switch rep := ascReply.(type) {
+	default:
+		return nil, errors.New("unexpected type")
+	case redigo.Error:
+		return nil, rep
+	case int64:
+		return redigo.Int64(rep, err)
+	case string:
+		return redigo.String(rep, err)
+	case []byte:
+		return redigo.String(rep, err)
+	case []interface{}:
+		result := make([]interface{}, len(rep))
+		for _, v := range rep {
+			r, err := readReply(v)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, r)
+		}
+		return result, err
+	}
+	return nil, nil
+}
+
 /*
 Redis type              Go type
 error                   redis.Error
@@ -250,33 +277,7 @@ func do(arguments interface{}) (reply interface{}, err error) {
 		return nil, err
 	}
 
-	switch r := res.(type) {
-	default:
-		return nil, errors.New("unexpected type")
-	case redigo.Error:
-		return nil, r
-	case int64:
-		return redigo.Int64(res, err)
-	case string:
-		return redigo.String(res, err)
-	case []byte:
-		return redigo.String(res, err)
-	case []interface{}:
-		if command == "scan" || command == "keys"{
-			return res, err
-		}
-
-		iterfaceRes, err := redigo.Strings(res, err)
-		if err != nil {
-			return nil, err
-		}
-		var sectionList = make([]interface{}, len(r))
-		for i, v := range iterfaceRes {
-			sectionList[i] = v
-		}
-		return sectionList, err
-	}
-	return nil, nil
+	return readReply(res)
 }
 
 func close(arguments interface{}) (reply interface{}, err error) {
