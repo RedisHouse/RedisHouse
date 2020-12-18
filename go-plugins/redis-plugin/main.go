@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	redigo "github.com/garyburd/redigo/redis"
 	flutter "github.com/go-flutter-desktop/go-flutter"
@@ -19,7 +20,7 @@ type RedisPlugin struct {
 }
 
 var _ flutter.Plugin = &RedisPlugin{}
-var pool_size = 100
+var maxIdle = 100
 
 type Connection struct {
 	id                    string
@@ -85,8 +86,10 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 		conn, err = client.Dial("tcp", redisAddr)
 	}
 
-	pool := redigo.NewPool(
-		func() (redigo.Conn, error) {
+	pool := &redigo.Pool{
+		MaxIdle: maxIdle,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redigo.Conn, error) {
 
 			var c redigo.Conn
 			if conn != nil {
@@ -112,10 +115,16 @@ func connectTo(arguments interface{}) (reply interface{}, err error) {
 					return nil, err
 				}
 			}
-
 			return c, nil
-		}, pool_size)
-
+		},
+		TestOnBorrow: func(c redigo.Conn, t time.Time) error {
+			if time.Since(t) < time.Minute {
+				return nil
+			}
+			_, err := c.Do("PING")
+			return err
+		},
+	}
 	redisConn := pool.Get()
 
 	pong, err := redisConn.Do("ping")
@@ -176,6 +185,14 @@ func closeSession(arguments interface{}) (reply interface{}, err error) {
 	return nil, nil
 }
 
+type redError struct {
+	ErrCode string
+}
+
+func (e *redError) Error() string {
+	return e.ErrCode
+}
+
 /*
 Redis type              Go type
 error                   redis.Error
@@ -202,7 +219,20 @@ func do(arguments interface{}) (reply interface{}, err error) {
 
 	redisConn := sessionsMap[argsMap["sessionID"].(string)].Conn
 
+	//_, err = redisConn.Do("PING")
+	//if err != nil {
+	//	pool := poolsMap[argsMap["id"].(string)]
+	//	redisConn = pool.Get()
+	//	sessionsMap[argsMap["sessionID"].(string)] = Session{
+	//		ID:   argsMap["sessionID"].(string),
+	//		Conn: redisConn,
+	//	}
+	//	//err = redisConn.Close()
+	//	return nil, err
+	//}
+
 	strFields := strings.Fields(argsMap["command"].(string))
+	command := strFields[0]
 	log.Println(strFields)
 	args := make([]interface{}, len(strFields)-1)
 	for i, v := range strFields[1:] {
@@ -211,9 +241,9 @@ func do(arguments interface{}) (reply interface{}, err error) {
 
 	var res interface{}
 	if len(args) == 0 {
-		res, err = redisConn.Do(strFields[0])
+		res, err = redisConn.Do(command)
 	} else {
-		res, err = redisConn.Do(strFields[0], args...)
+		res, err = redisConn.Do(command, args...)
 	}
 
 	if err != nil {
@@ -232,6 +262,10 @@ func do(arguments interface{}) (reply interface{}, err error) {
 	case []byte:
 		return redigo.String(res, err)
 	case []interface{}:
+		if command == "scan" || command == "keys"{
+			return res, err
+		}
+
 		iterfaceRes, err := redigo.Strings(res, err)
 		if err != nil {
 			return nil, err
