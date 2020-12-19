@@ -85,6 +85,14 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
         // }
         b..activePanelIndex = event.index;
       });
+    } else if(event is PanelDBChangeEvent) {
+      yield state.rebuild((b) {
+        var panelListBuilder = b.panelList;
+        var panel = panelListBuilder.removeAt(event.index);
+        panel = panel.rebuild((b) => b..dbIndex=event.dbIndex);
+        panelListBuilder.insert(event.index, panel);
+        b.panelList = panelListBuilder;
+      });
     }
   }
 
@@ -134,4 +142,10 @@ class PanelCloseEvent extends MainPageEvent {
 class PanelActiveEvent extends MainPageEvent {
   int index;
   PanelActiveEvent(this.index,);
+}
+
+class PanelDBChangeEvent extends MainPageEvent {
+  int index;
+  String dbIndex;
+  PanelDBChangeEvent(this.index, this.dbIndex,);
 }

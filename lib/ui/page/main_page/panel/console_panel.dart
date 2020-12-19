@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
+import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
@@ -26,15 +27,16 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
   FocusNode _focusNode = FocusNode();
   List<String> commandList = [];
   NewConnectionData connection;
+  PanelInfo panelInfo;
   @override
   void didInitState() {
     var mainPageBloc = context.read<MainPageBloc>();
     var mainPageData = mainPageBloc.state;
-    var panelData = mainPageData.panelList.where((item) => StringUtil.isEqual(widget.panelUUID, item.uuid)).first;
-    connection = panelData.connection;
-    var dbIndex = StringUtil.isNotBlank(panelData.dbIndex) ? panelData.dbIndex : "0";
-    Redis.instance.createSession(connection.id, panelData.uuid).then((value) {
-      return Redis.instance.execute(connection.id, panelData.uuid, "select $dbIndex");
+    panelInfo = mainPageData.panelList.where((item) => StringUtil.isEqual(widget.panelUUID, item.uuid)).first;
+    connection = panelInfo.connection;
+    var dbIndex = StringUtil.isNotBlank(panelInfo.dbIndex) ? panelInfo.dbIndex : "0";
+    Redis.instance.createSession(connection.id, panelInfo.uuid).then((value) {
+      return Redis.instance.execute(connection.id, panelInfo.uuid, "select $dbIndex");
     }).then((value) {
       BotToast.showText(text: "会话创建完成。");
     });
@@ -43,8 +45,16 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
       if(state.panelList == null || state.panelList.length == 0) {
         return;
       }
-      if(StringUtil.isEqual(widget.panelUUID, state.panelList[state.activePanelIndex].uuid)) {
+      var activePanel = state.panelList[state.activePanelIndex];
+      if(StringUtil.isEqual(widget.panelUUID, activePanel.uuid)) {
         _focusNode.requestFocus();
+        if(activePanel.dbIndex != panelInfo.dbIndex) {
+          if(mounted) {
+            setState(() {
+              panelInfo = activePanel;
+            });
+          }
+        }
       }
     });
   }
@@ -63,6 +73,7 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
 
   @override
   Widget build(BuildContext context) {
+    var dbIndex = StringUtil.isNotBlank(panelInfo.dbIndex) ? panelInfo.dbIndex : "0";
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +86,7 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
             autofocus: true,
             decoration: InputDecoration(
                 border: InputBorder.none,
-                prefixText: "${connection.redisName} >"
+                prefixText: "${connection.redisName}:$dbIndex > "
             ),
             onSubmitted: (s) {
               if(StringUtil.isBlank(s) || s.trim().length == 0) {
@@ -83,9 +94,16 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
                 _focusNode.requestFocus();
                 return;
               }
+              var commandArgList = s.trim().split(" ").where((element) => StringUtil.isNotBlank(element)).toList();
+              Log.d("命令：${commandArgList}");
               Redis.instance.execute(connection.id, widget.panelUUID, s).then((value) {
-                commandList.add("${connection.redisName} >$s\n$value");
+                commandList.add("${connection.redisName}:$dbIndex > $s\n$value");
                 _textEditingController.clear();
+                if(StringUtil.isEqual(commandArgList[0], "select")) {
+                  int activePanel = context.read<MainPageBloc>().state.activePanelIndex;
+                  Log.d("PanelDBChangeEvent($activePanel, ${commandArgList[1]})");
+                  context.read<MainPageBloc>().add(PanelDBChangeEvent(activePanel, commandArgList[1]));
+                }
                 setState(() {
 
                 });
@@ -95,7 +113,7 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
                   Log.d("ExceptionMessage: ${e.message}");
                   Log.d("ExceptionDetails: ${e.details}");
                 }
-                commandList.add("${connection.redisName} >$s\n$e");
+                commandList.add("${connection.redisName}:$dbIndex > $s\n$e");
                 _textEditingController.clear();
                 setState(() {
 
