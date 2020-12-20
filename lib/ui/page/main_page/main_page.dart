@@ -218,7 +218,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
               if(StringUtil.isEqual("console", element.type)) {
                 panelWidget = ConsolePanel(element.uuid);
               } else if(StringUtil.isEqual("db", element.type)) {
-                panelWidget =  DatabasePanel();
+                panelWidget =  DatabasePanel(element.uuid);
               } else if(StringUtil.isEqual("info", element.type)) {
                 panelWidget =  InfoPanel();
               } else {
