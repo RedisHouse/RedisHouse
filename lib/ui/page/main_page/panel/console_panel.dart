@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:sprintf/sprintf.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
@@ -137,12 +138,14 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
     StringBuffer stringBuffer = StringBuffer();
     for(int i = 0; i < value.length; i++) {
       for(int j = 0; j < level; j++) {
-        stringBuffer.write('    ');
+        stringBuffer.write('        ');
       }
-      stringBuffer.write("${i+1})    ");
+      stringBuffer.write("${sprintf("%8i", [i+1])})");
       if(value[i] is List) {
+        stringBuffer.write("\n");
         stringBuffer.write(formatListOutput(level+1, value[i]));
       } else {
+        stringBuffer.write("        ");
         stringBuffer.write("${value[i]}");
       }
       stringBuffer.write("\n");
