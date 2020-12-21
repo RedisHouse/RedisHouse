@@ -51,7 +51,7 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
           panelListBuilder = BuiltList<PanelInfo>().toBuilder();
         }
         panelListBuilder.add(PanelInfo((b) => b
-            ..uuid=Uuid().v1()
+            ..uuid=Uuid().v4()
             ..type=event.type
             ..name=event.connection.redisName
             ..connection=event.connection.toBuilder()

@@ -673,7 +673,7 @@ class _ConnectionInfoFormState extends State<_ConnectionInfoForm> with AfterInit
       } else {
         // 新建连接
         newConnectionData = newConnectionData.rebuild((b) {
-          b.id = Uuid().v1();
+          b.id = Uuid().v4();
           if(StringUtil.isBlank(b.redisPort)) {
             b.redisPort = "6379";
           }

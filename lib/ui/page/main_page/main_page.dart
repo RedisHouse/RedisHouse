@@ -248,29 +248,34 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                 } else if(StringUtil.isEqual("info", item.type)) {
                   icon = Icon(Icons.info, size: 20,);
                 }
-                return MapEntry(index, GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onDoubleTap: () {
-                    context.read<MainPageBloc>().add(RedisListOpenEvent(!state.redisListOpen));
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      icon,
-                      SizedBox(width: 5,),
-                      Text(item.name),
-                      SizedBox(width: 10,),
-                      InkWell(
-                        onTap: () async {
-                          context.read<MainPageBloc>().add(PanelCloseEvent(index));
-                        },
-                        child: Tooltip(
-                          message: "关闭窗口",
-                          child: Icon(Icons.close, size: 20,)
-                        ),
+                return MapEntry(index, Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onDoubleTap: () {
+                        context.read<MainPageBloc>().add(RedisListOpenEvent(!state.redisListOpen));
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          icon,
+                          SizedBox(width: 5,),
+                          Text(item.name),
+                          SizedBox(width: 10,),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        context.read<MainPageBloc>().add(PanelCloseEvent(index));
+                      },
+                      child: Tooltip(
+                        message: "关闭窗口",
+                        child: Icon(Icons.close, size: 20,)
+                      ),
+                    ),
+                  ],
                 ));
               }).values.toList(),
               controller: tabController,
@@ -316,7 +321,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
   Widget unOpened(NewConnectionData connection, MainPageData mainPageData) {
     return ListTile(
       onTap: () async {
-        var sessionID = Uuid().v1();
+        var sessionID = Uuid().v4();
         Redis.instance.connectTo(connection.toJson()).then((value) async {
           return Redis.instance.createSession(connection.id, sessionID);
         }).then((value) {
