@@ -275,6 +275,10 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
               }).values.toList(),
               controller: tabController,
             ),
+            Container(
+              color: Colors.grey.withAlpha(128),
+              height: 0.5,
+            ),
             Expanded(
               child: IndexedStack(
                 index: state.activePanelIndex,

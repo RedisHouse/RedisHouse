@@ -37,6 +37,7 @@ dependencies:
   ndialog: ^3.1.0
   extended_tabs: ^1.0.1
   fl_chart: ^0.12.1
+  menu_button: ^1.2.1
 
 dependency_overrides:
   analyzer: ^0.41.1
