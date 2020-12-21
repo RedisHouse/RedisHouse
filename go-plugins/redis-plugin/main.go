@@ -198,6 +198,8 @@ func readReply(ascReply interface{}) (reply interface{}, err error) {
 	switch rep := ascReply.(type) {
 	default:
 		return nil, errors.New("unexpected type")
+	case nil:
+		return nil, nil
 	case redigo.Error:
 		return nil, rep
 	case int64:
@@ -300,24 +302,19 @@ func close(arguments interface{}) (reply interface{}, err error) {
 func ping(arguments interface{}) (reply interface{}, err error) {
 
 	argsMap := arguments.(map[interface{}]interface{})
-	if _, ok := poolsMap[argsMap["id"].(string)]; ok {
-		return
-	}
-	if nil != err {
-		log.Printf("get ssh client err: %v\n", err)
-		return nil, err
-	}
 
 	redisAddr := fmt.Sprintf("%s:%s", argsMap["redisAddress"].(string), argsMap["redisPort"].(string))
 	var conn net.Conn = nil
 	if _, ok := argsMap["useSSHTunnel"]; ok && argsMap["useSSHTunnel"].(bool) {
 
 		client, err := getSSHClient(argsMap)
+		defer client.Close()
 		if err != nil {
 			log.Fatal("dial to redis addr err: ", err)
 			return nil, err
 		}
 		conn, err = client.Dial("tcp", redisAddr)
+		defer conn.Close()
 	}
 
 	var c redigo.Conn
@@ -325,11 +322,14 @@ func ping(arguments interface{}) (reply interface{}, err error) {
 		c = redigo.NewConn(conn, -1, -1)
 	} else {
 		c, err = redigo.Dial("tcp", redisAddr)
+		if err != nil {
+			return nil, err
+		}
 	}
+	defer c.Close()
 
 	if _, ok := argsMap["redisPassword"]; ok && argsMap["redisPassword"].(string) != "" {
 		if _, err := c.Do("AUTH", argsMap["redisPassword"].(string)); err != nil {
-			c.Close()
 			return nil, err
 		}
 	}
