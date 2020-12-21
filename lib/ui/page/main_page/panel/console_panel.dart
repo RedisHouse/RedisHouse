@@ -97,7 +97,11 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
               var commandArgList = s.trim().split(" ").where((element) => StringUtil.isNotBlank(element)).toList();
               Log.d("命令：${commandArgList}");
               Redis.instance.execute(connection.id, widget.panelUUID, s).then((value) {
-                commandList.add("${connection.redisName}:$dbIndex > $s\n$value");
+                if(value is List) {
+                  commandList.add("${connection.redisName}:$dbIndex > $s\n${formatListOutput(0, value)}");
+                } else {
+                  commandList.add("${connection.redisName}:$dbIndex > $s\n$value");
+                }
                 _textEditingController.clear();
                 if(StringUtil.isEqual(commandArgList[0], "select")) {
                   int activePanel = context.read<MainPageBloc>().state.activePanelIndex;
@@ -108,11 +112,11 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
 
                 });
               }).catchError((e) {
-                if(e is PlatformException) {
-                  Log.d("ExceptionCode: ${e.code}");
-                  Log.d("ExceptionMessage: ${e.message}");
-                  Log.d("ExceptionDetails: ${e.details}");
-                }
+                // if(e is PlatformException) {
+                //   Log.d("ExceptionCode: ${e.code}");
+                //   Log.d("ExceptionMessage: ${e.message}");
+                //   Log.d("ExceptionDetails: ${e.details}");
+                // }
                 commandList.add("${connection.redisName}:$dbIndex > $s\n$e");
                 _textEditingController.clear();
                 setState(() {
@@ -127,6 +131,23 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
         ],
       ),
     );
+  }
+
+  String formatListOutput(int level, List value) {
+    StringBuffer stringBuffer = StringBuffer();
+    for(int i = 0; i < value.length; i++) {
+      for(int j = 0; j < level; j++) {
+        stringBuffer.write('    ');
+      }
+      stringBuffer.write("${i+1})    ");
+      if(value[i] is List) {
+        stringBuffer.write(formatListOutput(level+1, value[i]));
+      } else {
+        stringBuffer.write("${value[i]}");
+      }
+      stringBuffer.write("\n");
+    }
+    return stringBuffer.toString();
   }
 
 }

@@ -38,6 +38,7 @@ dependencies:
   extended_tabs: ^1.0.1
   fl_chart: ^0.12.1
   menu_button: ^1.2.1
+  sprintf: ^5.0.0
 
 dependency_overrides:
   analyzer: ^0.41.1
