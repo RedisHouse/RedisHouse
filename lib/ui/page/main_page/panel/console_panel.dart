@@ -3,6 +3,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:sprintf/sprintf.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +25,7 @@ class ConsolePanel extends StatefulWidget {
 
 class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<ConsolePanel> {
 
+  ScrollController _scrollController = ScrollController();
   TextEditingController _textEditingController = TextEditingController();
   FocusNode _focusNode = FocusNode();
   FocusNode _keyboardFocusNode = FocusNode();
@@ -68,6 +70,7 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
   @override
   void dispose() {
     super.dispose();
+    _scrollController?.dispose();
     _textEditingController?.dispose();
     _focusNode?.dispose();
     Redis.instance.closeSession(connection.id, widget.panelUUID).then((value) {
@@ -85,6 +88,7 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
       autofocus: true,
       onKey: onKeyEvent,
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -100,13 +104,24 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
               ),
               onSubmitted: (s) {
                 if(StringUtil.isBlank(s) || s.trim().length == 0) {
-                  BotToast.showText(text: "请输入命令");
-                  _focusNode.requestFocus();
+                  Future.value(true).then((value) {
+                    commandList.add("${connection.redisName}:$dbIndex > \n");
+                    setState(() {
+                    });
+                  }).whenComplete(() {
+                    _focusNode.requestFocus();
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      _scrollController.jumpTo(
+                        _scrollController.position.maxScrollExtent,
+                      );
+                    });
+                  });
                   return;
                 }
                 var commandArgList = s.trim().split(" ").where((element) => StringUtil.isNotBlank(element)).toList();
                 Log.d("命令：${commandArgList}");
                 Redis.instance.execute(connection.id, widget.panelUUID, s).then((value) {
+                  // 加入命令历史
                   addCommandList(s);
                   if(value is List) {
                     commandList.add("${connection.redisName}:$dbIndex > $s\n${formatListOutput(0, value)}");
@@ -130,6 +145,11 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
                   });
                 }).whenComplete(() {
                   _focusNode.requestFocus();
+                  SchedulerBinding.instance.addPostFrameCallback((_) {
+                    _scrollController.jumpTo(
+                      _scrollController.position.maxScrollExtent,
+                    );
+                  });
                 });
 
               },
