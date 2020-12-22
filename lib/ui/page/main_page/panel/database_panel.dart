@@ -33,6 +33,8 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   int navScanIndex = 0;
   List<int> navScanIndexList = List.of([0], growable: true);
 
+  String selectedKey = "";
+
   @override
   void didInitState() {
     var mainPageBloc = context.read<MainPageBloc>();
@@ -208,13 +210,24 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
               Expanded(child: ListView.separated(
                 itemCount: scanKeyList.length,
                 itemBuilder: (context, index) {
+                  String keyName = scanKeyList[index];
+                  bool selected = StringUtil.isEqual(selectedKey, keyName);
                   return InkWell(
                     onTap: () {
-
+                      setState(() {
+                        selectedKey = keyName;
+                      });
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Text(scanKeyList[index]),
+                      child: Row(
+                        children: [
+                          selected ? Icon(Icons.check, color: Colors.green,) : Container(),
+                          SizedBox(width: selected ? 5 : 0,),
+                          Text(keyName),
+
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -266,7 +279,19 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
               )
             ],
           ),
-        )
+        ),
+        Expanded(child: StringUtil.isNotBlank(selectedKey) ? Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  child: Text(selectedKey),
+                ),
+              ],
+            )
+          ],
+        ) : Container()),
       ],
     );
   }
