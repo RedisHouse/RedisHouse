@@ -16,7 +16,7 @@ import 'package:redis_house/util/string_util.dart';
 
 class ConsolePanel extends StatefulWidget {
   final String panelUUID;
-  ConsolePanel(this.panelUUID,);
+  ConsolePanel(this.panelUUID,): super(key: ValueKey(panelUUID));
   @override
   State<StatefulWidget> createState() {
     return _ConsolePanelState();
