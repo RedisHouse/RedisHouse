@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:redis_house/bloc/base/base_bloc.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/log/log.dart';
+import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/util/string_util.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,6 +37,48 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
         });
         b.connectedRedisMap = connectedRedisMap;
       });
+      // 发送扫描 DBSize 的事件
+      add(ConnectionDBSizeEvent(event.connectionId, -1));
+    } else if(event is ConnectionDBSizeEvent) {
+      String sessionID = Uuid().v4();
+      try {
+        await Redis.instance.createSession(event.connectionId, sessionID);
+        if(event.dbIndex == -1) {
+          // 所有 DB
+          var getConfigResult = await Redis.instance.execute(event.connectionId, sessionID, "CONFIG GET databases");
+          int dbNum = int.tryParse(getConfigResult[1]);
+          for (int i = 0; i < dbNum; i++) {
+            await Redis.instance.execute(
+                event.connectionId, sessionID, "select $i");
+            int dbSize = await Redis.instance.execute(
+                event.connectionId, sessionID, "dbsize");
+            Log.d("DB$i ($dbSize)");
+            yield state.rebuild((b) {
+              MapBuilder<String, ConnectionDetail> connectedRedisMap = b
+                  .connectedRedisMap;
+              var detail = connectedRedisMap[event.connectionId];
+              connectedRedisMap[event.connectionId] = detail.rebuild((b) {
+                b.dbKeyNumMap["db$i"] = dbSize;
+              });
+              b.connectedRedisMap = connectedRedisMap;
+            });
+          }
+        } else {
+          // 单个 DB
+          await Redis.instance.execute(event.connectionId, sessionID, "select ${event.dbIndex}");
+          int dbSize = await Redis.instance.execute(event.connectionId, sessionID, "dbsize");
+          yield state.rebuild((b) {
+            MapBuilder<String, ConnectionDetail> connectedRedisMap = b.connectedRedisMap;
+            var detail = connectedRedisMap[event.connectionId];
+            connectedRedisMap[event.connectionId] = detail.rebuild((b) {
+              b.dbKeyNumMap["db${event.dbIndex}"] = dbSize;
+            });
+            b.connectedRedisMap = connectedRedisMap;
+          });
+        }
+      } finally {
+        Redis.instance.closeSession(event.connectionId, sessionID);
+      }
     } else if(event is ConnectionCloseEvent) {
       yield state.rebuild((b) {
         b.connectedRedisMap.remove(event.connectionId);
@@ -114,6 +158,12 @@ class ConnectionOpenEvent extends MainPageEvent {
   String connectionId;
   int dbNum;
   ConnectionOpenEvent(this.connectionId, this.dbNum);
+}
+
+class ConnectionDBSizeEvent extends MainPageEvent {
+  String connectionId;
+  int dbIndex;
+  ConnectionDBSizeEvent(this.connectionId, this.dbIndex);
 }
 
 class ConnectionCloseEvent extends MainPageEvent {

@@ -511,6 +511,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
       ),
       expandedAlignment: Alignment.topLeft,
       children: connectionDetail != null ? connectionDetail.dbKeyNumMap.map((key, value) {
+        String dbSizeStr = value==-1? "" : " ($value)";
         return MapEntry(
           key,
           Column(
@@ -522,7 +523,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                   children: [
                     Icon(Icons.landscape),
                     SizedBox(width: 5,),
-                    Text(key),
+                    Text("$key$dbSizeStr"),
                     Expanded(child: Container()),
                     InkWell(
                       onTap: () async {
