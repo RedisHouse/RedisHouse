@@ -67,6 +67,7 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
           // 单个 DB
           await Redis.instance.execute(event.connectionId, sessionID, "select ${event.dbIndex}");
           int dbSize = await Redis.instance.execute(event.connectionId, sessionID, "dbsize");
+          Log.d("DB${event.dbIndex} ($dbSize)");
           yield state.rebuild((b) {
             MapBuilder<String, ConnectionDetail> connectedRedisMap = b.connectedRedisMap;
             var detail = connectedRedisMap[event.connectionId];

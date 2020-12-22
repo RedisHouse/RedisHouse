@@ -527,6 +527,18 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                     Expanded(child: Container()),
                     InkWell(
                       onTap: () async {
+                        context.read<MainPageBloc>().add(ConnectionDBSizeEvent(connection.id, int.tryParse(key.replaceAll("db", ""))));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: Tooltip(
+                          message: "刷新 DB",
+                          child: Icon(Icons.refresh),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
                         context.read<MainPageBloc>().add(PanelOpenEvent("db", connection, key.replaceAll("db", "")));
                       },
                       child: Padding(
