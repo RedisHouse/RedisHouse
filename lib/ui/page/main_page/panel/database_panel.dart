@@ -9,6 +9,11 @@ import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/ui/page/main_page/panel/hash_detail_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/list_detail_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/set_detail_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/string_detail_panel.dart';
+import 'package:redis_house/ui/page/main_page/panel/zset_detail_panel.dart';
 import 'package:redis_house/util/string_util.dart';
 
 class DatabasePanel extends StatefulWidget {
@@ -270,25 +275,13 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
             ],
           ),
         ),
-        Expanded(child: StringUtil.isNotBlank(selectedKey) ? Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  child: Text(selectedKey),
-                ),
-              ],
-            )
-          ],
-        ) : Container()),
+        Expanded(child: _keyDetailPanel()),
       ],
     );
   }
-
+  var keyDetail;
   void _selectKey(String key) async {
     selectedKey = key;
-    var keyDetail;
     try {
       String keyType = await Redis.instance.execute(connection.id, panelInfo.uuid, "type $key");
       if(StringUtil.isEqual("string", keyType)) {
@@ -315,6 +308,24 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
 
     });
 
+  }
+
+  Widget _keyDetailPanel() {
+    if(keyDetail == null) {
+      return Container();
+    }
+    if(StringUtil.isEqual("string", keyDetail.type)) {
+      return StringDetailPanel(keyDetail);
+    } else if(StringUtil.isEqual("hash", keyDetail.type)) {
+      return HashDetailPanel(keyDetail);
+    } else if(StringUtil.isEqual("list", keyDetail.type)) {
+      return ListDetailPanel(keyDetail);
+    } else if(StringUtil.isEqual("set", keyDetail.type)) {
+      return SetDetailPanel(keyDetail);
+    } else if(StringUtil.isEqual("zset", keyDetail.type)) {
+      return ZSetDetailPanel(keyDetail);
+    }
+    return Container();
   }
 
   List<String> dbList(int dbNum) {
