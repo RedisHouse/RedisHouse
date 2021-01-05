@@ -124,14 +124,6 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
     );
     return Row(
       children: [
-        // MaterialButton(
-        //   onPressed: () async {
-        //     for(int i = 0; i < 100; i++) {
-        //       await Redis.instance.execute(connection.id, widget.panelUUID, "set name$i hubin-$i");
-        //     }
-        //   },
-        //   child: Text("造数据"),
-        // )
         Container(
           width: 300,
           color: Colors.black12,
@@ -214,9 +206,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                   bool selected = StringUtil.isEqual(selectedKey, keyName);
                   return InkWell(
                     onTap: () {
-                      setState(() {
-                        selectedKey = keyName;
-                      });
+                      _selectKey(keyName);
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 10),
@@ -294,6 +284,37 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         ) : Container()),
       ],
     );
+  }
+
+  void _selectKey(String key) async {
+    selectedKey = key;
+    var keyDetail;
+    try {
+      String keyType = await Redis.instance.execute(connection.id, panelInfo.uuid, "type $key");
+      if(StringUtil.isEqual("string", keyType)) {
+        String keyValue = await Redis.instance.execute(connection.id, panelInfo.uuid, "get $key");
+        keyDetail = StringKeyDetail((b)=>b..key=key..type=keyType..value=keyValue);
+      } else if(StringUtil.isEqual("hash", keyType)) {
+        keyDetail = HashKeyDetail((b)=>b..key=key..type=keyType);
+      } else if(StringUtil.isEqual("list", keyType)) {
+        keyDetail = ListKeyDetail((b)=>b..key=key..type=keyType);
+      } else if(StringUtil.isEqual("set", keyType)) {
+        keyDetail = SetKeyDetail((b)=>b..key=key..type=keyType);
+      } else if(StringUtil.isEqual("zset", keyType)) {
+        keyDetail = ZSetKeyDetail((b)=>b..key=key..type=keyType);
+      } else {
+        throw "INVALID KEY TYPE";
+      }
+      int keyTTL = await Redis.instance.execute(connection.id, panelInfo.uuid, "ttl $key");
+      keyDetail = keyDetail.rebuild((b)=>b..ttl=keyTTL);
+      Log.d("KeyDetail: $keyDetail");
+    } catch(e) {
+      BotToast.showText(text: "$e");
+    }
+    setState(() {
+
+    });
+
   }
 
   List<String> dbList(int dbNum) {

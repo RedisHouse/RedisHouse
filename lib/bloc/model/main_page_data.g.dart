@@ -283,12 +283,19 @@ class _$PanelInfo extends PanelInfo {
   final NewConnectionData connection;
   @override
   final String dbIndex;
+  @override
+  final BaseKeyDetail keyDetail;
 
   factory _$PanelInfo([void Function(PanelInfoBuilder) updates]) =>
       (new PanelInfoBuilder()..update(updates)).build();
 
   _$PanelInfo._(
-      {this.uuid, this.type, this.name, this.connection, this.dbIndex})
+      {this.uuid,
+      this.type,
+      this.name,
+      this.connection,
+      this.dbIndex,
+      this.keyDetail})
       : super._();
 
   @override
@@ -306,15 +313,18 @@ class _$PanelInfo extends PanelInfo {
         type == other.type &&
         name == other.name &&
         connection == other.connection &&
-        dbIndex == other.dbIndex;
+        dbIndex == other.dbIndex &&
+        keyDetail == other.keyDetail;
   }
 
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, uuid.hashCode), type.hashCode), name.hashCode),
-            connection.hashCode),
-        dbIndex.hashCode));
+        $jc(
+            $jc($jc($jc($jc(0, uuid.hashCode), type.hashCode), name.hashCode),
+                connection.hashCode),
+            dbIndex.hashCode),
+        keyDetail.hashCode));
   }
 
   @override
@@ -324,7 +334,8 @@ class _$PanelInfo extends PanelInfo {
           ..add('type', type)
           ..add('name', name)
           ..add('connection', connection)
-          ..add('dbIndex', dbIndex))
+          ..add('dbIndex', dbIndex)
+          ..add('keyDetail', keyDetail))
         .toString();
   }
 }
@@ -354,6 +365,10 @@ class PanelInfoBuilder implements Builder<PanelInfo, PanelInfoBuilder> {
   String get dbIndex => _$this._dbIndex;
   set dbIndex(String dbIndex) => _$this._dbIndex = dbIndex;
 
+  BaseKeyDetail _keyDetail;
+  BaseKeyDetail get keyDetail => _$this._keyDetail;
+  set keyDetail(BaseKeyDetail keyDetail) => _$this._keyDetail = keyDetail;
+
   PanelInfoBuilder();
 
   PanelInfoBuilder get _$this {
@@ -363,6 +378,7 @@ class PanelInfoBuilder implements Builder<PanelInfo, PanelInfoBuilder> {
       _name = _$v.name;
       _connection = _$v.connection?.toBuilder();
       _dbIndex = _$v.dbIndex;
+      _keyDetail = _$v.keyDetail;
       _$v = null;
     }
     return this;
@@ -391,7 +407,8 @@ class PanelInfoBuilder implements Builder<PanelInfo, PanelInfoBuilder> {
               type: type,
               name: name,
               connection: _connection?.build(),
-              dbIndex: dbIndex);
+              dbIndex: dbIndex,
+              keyDetail: keyDetail);
     } catch (_) {
       String _$failedField;
       try {
@@ -403,6 +420,488 @@ class PanelInfoBuilder implements Builder<PanelInfo, PanelInfoBuilder> {
       }
       rethrow;
     }
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$StringKeyDetail extends StringKeyDetail {
+  @override
+  final String value;
+  @override
+  final String key;
+  @override
+  final String type;
+  @override
+  final int ttl;
+
+  factory _$StringKeyDetail([void Function(StringKeyDetailBuilder) updates]) =>
+      (new StringKeyDetailBuilder()..update(updates)).build();
+
+  _$StringKeyDetail._({this.value, this.key, this.type, this.ttl}) : super._();
+
+  @override
+  StringKeyDetail rebuild(void Function(StringKeyDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  StringKeyDetailBuilder toBuilder() =>
+      new StringKeyDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is StringKeyDetail &&
+        value == other.value &&
+        key == other.key &&
+        type == other.type &&
+        ttl == other.ttl;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc(
+        $jc($jc($jc(0, value.hashCode), key.hashCode), type.hashCode),
+        ttl.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('StringKeyDetail')
+          ..add('value', value)
+          ..add('key', key)
+          ..add('type', type)
+          ..add('ttl', ttl))
+        .toString();
+  }
+}
+
+class StringKeyDetailBuilder
+    implements Builder<StringKeyDetail, StringKeyDetailBuilder> {
+  _$StringKeyDetail _$v;
+
+  String _value;
+  String get value => _$this._value;
+  set value(String value) => _$this._value = value;
+
+  String _key;
+  String get key => _$this._key;
+  set key(String key) => _$this._key = key;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  int _ttl;
+  int get ttl => _$this._ttl;
+  set ttl(int ttl) => _$this._ttl = ttl;
+
+  StringKeyDetailBuilder();
+
+  StringKeyDetailBuilder get _$this {
+    if (_$v != null) {
+      _value = _$v.value;
+      _key = _$v.key;
+      _type = _$v.type;
+      _ttl = _$v.ttl;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(StringKeyDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$StringKeyDetail;
+  }
+
+  @override
+  void update(void Function(StringKeyDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$StringKeyDetail build() {
+    final _$result = _$v ??
+        new _$StringKeyDetail._(value: value, key: key, type: type, ttl: ttl);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$HashKeyDetail extends HashKeyDetail {
+  @override
+  final String key;
+  @override
+  final String type;
+  @override
+  final int ttl;
+
+  factory _$HashKeyDetail([void Function(HashKeyDetailBuilder) updates]) =>
+      (new HashKeyDetailBuilder()..update(updates)).build();
+
+  _$HashKeyDetail._({this.key, this.type, this.ttl}) : super._();
+
+  @override
+  HashKeyDetail rebuild(void Function(HashKeyDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  HashKeyDetailBuilder toBuilder() => new HashKeyDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is HashKeyDetail &&
+        key == other.key &&
+        type == other.type &&
+        ttl == other.ttl;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('HashKeyDetail')
+          ..add('key', key)
+          ..add('type', type)
+          ..add('ttl', ttl))
+        .toString();
+  }
+}
+
+class HashKeyDetailBuilder
+    implements Builder<HashKeyDetail, HashKeyDetailBuilder> {
+  _$HashKeyDetail _$v;
+
+  String _key;
+  String get key => _$this._key;
+  set key(String key) => _$this._key = key;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  int _ttl;
+  int get ttl => _$this._ttl;
+  set ttl(int ttl) => _$this._ttl = ttl;
+
+  HashKeyDetailBuilder();
+
+  HashKeyDetailBuilder get _$this {
+    if (_$v != null) {
+      _key = _$v.key;
+      _type = _$v.type;
+      _ttl = _$v.ttl;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(HashKeyDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$HashKeyDetail;
+  }
+
+  @override
+  void update(void Function(HashKeyDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$HashKeyDetail build() {
+    final _$result =
+        _$v ?? new _$HashKeyDetail._(key: key, type: type, ttl: ttl);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$ListKeyDetail extends ListKeyDetail {
+  @override
+  final String key;
+  @override
+  final String type;
+  @override
+  final int ttl;
+
+  factory _$ListKeyDetail([void Function(ListKeyDetailBuilder) updates]) =>
+      (new ListKeyDetailBuilder()..update(updates)).build();
+
+  _$ListKeyDetail._({this.key, this.type, this.ttl}) : super._();
+
+  @override
+  ListKeyDetail rebuild(void Function(ListKeyDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  ListKeyDetailBuilder toBuilder() => new ListKeyDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ListKeyDetail &&
+        key == other.key &&
+        type == other.type &&
+        ttl == other.ttl;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('ListKeyDetail')
+          ..add('key', key)
+          ..add('type', type)
+          ..add('ttl', ttl))
+        .toString();
+  }
+}
+
+class ListKeyDetailBuilder
+    implements Builder<ListKeyDetail, ListKeyDetailBuilder> {
+  _$ListKeyDetail _$v;
+
+  String _key;
+  String get key => _$this._key;
+  set key(String key) => _$this._key = key;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  int _ttl;
+  int get ttl => _$this._ttl;
+  set ttl(int ttl) => _$this._ttl = ttl;
+
+  ListKeyDetailBuilder();
+
+  ListKeyDetailBuilder get _$this {
+    if (_$v != null) {
+      _key = _$v.key;
+      _type = _$v.type;
+      _ttl = _$v.ttl;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ListKeyDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$ListKeyDetail;
+  }
+
+  @override
+  void update(void Function(ListKeyDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$ListKeyDetail build() {
+    final _$result =
+        _$v ?? new _$ListKeyDetail._(key: key, type: type, ttl: ttl);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$SetKeyDetail extends SetKeyDetail {
+  @override
+  final String key;
+  @override
+  final String type;
+  @override
+  final int ttl;
+
+  factory _$SetKeyDetail([void Function(SetKeyDetailBuilder) updates]) =>
+      (new SetKeyDetailBuilder()..update(updates)).build();
+
+  _$SetKeyDetail._({this.key, this.type, this.ttl}) : super._();
+
+  @override
+  SetKeyDetail rebuild(void Function(SetKeyDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  SetKeyDetailBuilder toBuilder() => new SetKeyDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is SetKeyDetail &&
+        key == other.key &&
+        type == other.type &&
+        ttl == other.ttl;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('SetKeyDetail')
+          ..add('key', key)
+          ..add('type', type)
+          ..add('ttl', ttl))
+        .toString();
+  }
+}
+
+class SetKeyDetailBuilder
+    implements Builder<SetKeyDetail, SetKeyDetailBuilder> {
+  _$SetKeyDetail _$v;
+
+  String _key;
+  String get key => _$this._key;
+  set key(String key) => _$this._key = key;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  int _ttl;
+  int get ttl => _$this._ttl;
+  set ttl(int ttl) => _$this._ttl = ttl;
+
+  SetKeyDetailBuilder();
+
+  SetKeyDetailBuilder get _$this {
+    if (_$v != null) {
+      _key = _$v.key;
+      _type = _$v.type;
+      _ttl = _$v.ttl;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(SetKeyDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$SetKeyDetail;
+  }
+
+  @override
+  void update(void Function(SetKeyDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$SetKeyDetail build() {
+    final _$result =
+        _$v ?? new _$SetKeyDetail._(key: key, type: type, ttl: ttl);
+    replace(_$result);
+    return _$result;
+  }
+}
+
+class _$ZSetKeyDetail extends ZSetKeyDetail {
+  @override
+  final String key;
+  @override
+  final String type;
+  @override
+  final int ttl;
+
+  factory _$ZSetKeyDetail([void Function(ZSetKeyDetailBuilder) updates]) =>
+      (new ZSetKeyDetailBuilder()..update(updates)).build();
+
+  _$ZSetKeyDetail._({this.key, this.type, this.ttl}) : super._();
+
+  @override
+  ZSetKeyDetail rebuild(void Function(ZSetKeyDetailBuilder) updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  ZSetKeyDetailBuilder toBuilder() => new ZSetKeyDetailBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is ZSetKeyDetail &&
+        key == other.key &&
+        type == other.type &&
+        ttl == other.ttl;
+  }
+
+  @override
+  int get hashCode {
+    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper('ZSetKeyDetail')
+          ..add('key', key)
+          ..add('type', type)
+          ..add('ttl', ttl))
+        .toString();
+  }
+}
+
+class ZSetKeyDetailBuilder
+    implements Builder<ZSetKeyDetail, ZSetKeyDetailBuilder> {
+  _$ZSetKeyDetail _$v;
+
+  String _key;
+  String get key => _$this._key;
+  set key(String key) => _$this._key = key;
+
+  String _type;
+  String get type => _$this._type;
+  set type(String type) => _$this._type = type;
+
+  int _ttl;
+  int get ttl => _$this._ttl;
+  set ttl(int ttl) => _$this._ttl = ttl;
+
+  ZSetKeyDetailBuilder();
+
+  ZSetKeyDetailBuilder get _$this {
+    if (_$v != null) {
+      _key = _$v.key;
+      _type = _$v.type;
+      _ttl = _$v.ttl;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(ZSetKeyDetail other) {
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
+    _$v = other as _$ZSetKeyDetail;
+  }
+
+  @override
+  void update(void Function(ZSetKeyDetailBuilder) updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  _$ZSetKeyDetail build() {
+    final _$result =
+        _$v ?? new _$ZSetKeyDetail._(key: key, type: type, ttl: ttl);
     replace(_$result);
     return _$result;
   }

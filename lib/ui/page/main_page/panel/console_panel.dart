@@ -138,7 +138,11 @@ class _ConsolePanelState extends State<ConsolePanel> with AfterInitMixin<Console
 
                   });
                 }).catchError((e) {
-                  commandList.add("${connection.redisName}:$dbIndex > $s\n$e");
+                  if(e is PlatformException) {
+                    commandList.add("${connection.redisName}:$dbIndex > $s\n${e.message}");
+                  } else {
+                    commandList.add("${connection.redisName}:$dbIndex > $s\n$e");
+                  }
                   _textEditingController.clear();
                   setState(() {
 
