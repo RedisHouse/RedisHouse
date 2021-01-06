@@ -62,65 +62,7 @@ abstract class PanelInfo implements Built<PanelInfo, PanelInfoBuilder>  {
   @nullable
   String get dbIndex;
 
-  @nullable
-  BaseKeyDetail get keyDetail;
-
   PanelInfo._();
   factory PanelInfo([updates(PanelInfoBuilder b)]) = _$PanelInfo;
-
-}
-
-abstract class BaseKeyDetail {
-
-  @nullable
-  String get key;
-
-  @nullable
-  String get type;
-
-  @nullable
-  int get ttl;
-
-}
-
-abstract class StringKeyDetail implements BaseKeyDetail, Built<StringKeyDetail, StringKeyDetailBuilder>  {
-
-  @nullable
-  String get value;
-
-  StringKeyDetail._();
-  factory StringKeyDetail([updates(StringKeyDetailBuilder b)]) = _$StringKeyDetail;
-
-}
-
-abstract class HashKeyDetail implements BaseKeyDetail, Built<HashKeyDetail, HashKeyDetailBuilder>  {
-
-
-  HashKeyDetail._();
-  factory HashKeyDetail([updates(HashKeyDetailBuilder b)]) = _$HashKeyDetail;
-
-}
-
-abstract class ListKeyDetail implements BaseKeyDetail, Built<ListKeyDetail, ListKeyDetailBuilder>  {
-
-
-  ListKeyDetail._();
-  factory ListKeyDetail([updates(ListKeyDetailBuilder b)]) = _$ListKeyDetail;
-
-}
-
-abstract class SetKeyDetail implements BaseKeyDetail, Built<SetKeyDetail, SetKeyDetailBuilder>  {
-
-
-  SetKeyDetail._();
-  factory SetKeyDetail([updates(SetKeyDetailBuilder b)]) = _$SetKeyDetail;
-
-}
-
-abstract class ZSetKeyDetail implements BaseKeyDetail, Built<ZSetKeyDetail, ZSetKeyDetailBuilder>  {
-
-
-  ZSetKeyDetail._();
-  factory ZSetKeyDetail([updates(ZSetKeyDetailBuilder b)]) = _$ZSetKeyDetail;
 
 }

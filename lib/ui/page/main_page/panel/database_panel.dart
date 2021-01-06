@@ -4,7 +4,9 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:menu_button/menu_button.dart';
+import 'package:redis_house/bloc/key_detail_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
+import 'package:redis_house/bloc/model/key_detail_data.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/log/log.dart';
@@ -275,7 +277,15 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
             ],
           ),
         ),
-        Expanded(child: _keyDetailPanel()),
+        Expanded(child: BlocProvider(
+          key: ValueKey(keyDetail?.key??""),
+          create: (context) => KeyDetailBloc(context, KeyDetailData((b) => b
+            ..panelUUID=widget.panelUUID
+            ..connection=connection.toBuilder()
+            ..keyDetail=keyDetail
+          )),
+          child: _keyDetailPanel()
+        ),),
       ],
     );
   }
@@ -315,7 +325,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       return Container();
     }
     if(StringUtil.isEqual("string", keyDetail.type)) {
-      return StringDetailPanel(keyDetail);
+      return StringDetailPanel();
     } else if(StringUtil.isEqual("hash", keyDetail.type)) {
       return HashDetailPanel(keyDetail);
     } else if(StringUtil.isEqual("list", keyDetail.type)) {
