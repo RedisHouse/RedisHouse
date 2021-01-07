@@ -1,8 +1,7 @@
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:redis_house/bloc/model/key_detail_data.dart';
-import 'package:redis_house/bloc/model/main_page_data.dart';
+import 'package:redis_house/bloc/model/database_panel_data.dart';
 
 class ListDetailPanel extends StatefulWidget {
   final ListKeyDetail keyDetail;

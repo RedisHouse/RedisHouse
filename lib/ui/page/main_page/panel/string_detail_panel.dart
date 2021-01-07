@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:redis_house/bloc/key_detail_bloc.dart';
-import 'package:redis_house/bloc/model/key_detail_data.dart';
+import 'package:redis_house/bloc/database_panel_bloc.dart';
+import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 
@@ -36,19 +36,22 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
   StreamSubscription keyDetailStreamSubscription;
   @override
   void didInitState() {
-    keyDetailStreamSubscription = BlocProvider.of<KeyDetailBloc>(context).listen((KeyDetailData data) {
-      Log.d("StringKeyDetail~~~~~~~~~~~~~~~~~~~~~~~~~~`");
-      StringKeyDetail keyDetail = data.keyDetail;
-      _keyEditingController.text = keyDetail.key;
-      _valueEditingController.text = keyDetail.value;
-      _renameTextEditingController.text = keyDetail.key;
-      _ttlTextEditingController.text = "${keyDetail.ttl}";
+    keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
+      if(data != null && data.keyDetail != null) {
+        StringKeyDetail keyDetail = data.keyDetail;
+        _keyEditingController.text = keyDetail.key;
+        _valueEditingController.text = keyDetail.value;
+        _renameTextEditingController.text = keyDetail.key;
+        _ttlTextEditingController.text = "${keyDetail.ttl}";
+      }
     });
-    StringKeyDetail keyDetail = context.read<KeyDetailBloc>().state.keyDetail;
+    StringKeyDetail keyDetail = context.read<DatabasePanelBloc>().state.keyDetail;
     _keyEditingController.text = keyDetail.key;
     _valueEditingController.text = keyDetail.value;
     _renameTextEditingController.text = keyDetail.key;
     _ttlTextEditingController.text = "${keyDetail.ttl}";
+
+    Log.d("TTL: ${keyDetail.ttl}");
   }
 
   @override
@@ -63,7 +66,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<KeyDetailBloc, KeyDetailData>(
+    return BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
       builder: (BuildContext context, state) {
         var panelUUID = state.panelUUID;
         var connection = state.connection;
@@ -115,7 +118,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, "renamenx ${state.keyDetail.key} ${_renameTextEditingController.text}").then((value) {
                             if(value == 1) {
-                              context.read<KeyDetailBloc>().add(KeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
+                              context.read<DatabasePanelBloc>().add(DatabasePanelKeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
                               BotToast.showText(text: "重命名成功。");
                             } else {
                               BotToast.showText(text: "KEY 已存在！");
@@ -159,7 +162,8 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                       ).show(context).then((value) {
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, " EXPIRE ${state.keyDetail.key} ${_ttlTextEditingController.text}").then((value) {
-                            BotToast.showText(text: "已修改。");
+                            context.read<DatabasePanelBloc>().add(KeyTTLChanged(int.tryParse(_ttlTextEditingController.text)));
+                            BotToast.showText(text: "TTL 已修改。");
                           });
                         }
                       });
@@ -181,13 +185,14 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                           FlatButton(child: Text("取消", style: TextStyle(color: Colors.white),),onPressed: () {
                             Navigator.of(context).pop(false);
                           }),
-                          FlatButton(child: Text("确定", style: TextStyle(color: Colors.blue),),onPressed: () {
+                          FlatButton(child: Text("删除", style: TextStyle(color: Colors.red),),onPressed: () {
                             Navigator.of(context).pop(true);
                           }),
                         ],
                       ).show(context).then((value) {
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, "del ${state.keyDetail.key}").then((value) {
+                            context.read<DatabasePanelBloc>().add(KeyDelete(state.keyDetail.key));
                             BotToast.showText(text: "已删除。");
                           });
                         }

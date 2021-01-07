@@ -4,9 +4,9 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:menu_button/menu_button.dart';
-import 'package:redis_house/bloc/key_detail_bloc.dart';
+import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
-import 'package:redis_house/bloc/model/key_detail_data.dart';
+import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/log/log.dart';
@@ -20,7 +20,7 @@ import 'package:redis_house/util/string_util.dart';
 
 class DatabasePanel extends StatefulWidget {
   final String panelUUID;
-  DatabasePanel(this.panelUUID);
+  DatabasePanel(this.panelUUID): super(key: ValueKey(panelUUID));
   @override
   State<StatefulWidget> createState() {
     return _DatabasePanelState();
@@ -36,11 +36,9 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   String dbIndex = "0";
 
   int scanCount = 20;
-  List scanKeyList = List.empty(growable: true);
   int navScanIndex = 0;
   List<int> navScanIndexList = List.of([0], growable: true);
 
-  String selectedKey = "";
 
   @override
   void didInitState() {
@@ -88,11 +86,8 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       if(navScanIndexList.length == 1 || navScanIndexList.last != 0) {
         navScanIndexList.add(int.tryParse(value[0]));
       }
-      scanKeyList.clear();
-      scanKeyList.addAll(value[1]);
-      setState(() {
-
-      });
+      List<String> scanKeyList = List.of(value[1]).map((e) => "$e").toList();
+      context.read<DatabasePanelBloc>().add(ScanKeyListChanged(scanKeyList));
     }).catchError((e) {
       BotToast.showText(text: "$e");
     });
@@ -169,7 +164,8 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                           dbSize = 0;
                           navScanIndex = 0;
                           navScanIndexList = List.of([0], growable: true);
-                          scanKeyList.clear();
+
+                          context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                         });
                         selectAndSize();
                       }
@@ -192,7 +188,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                         dbSize = 0;
                         navScanIndex = 0;
                         navScanIndexList = List.of([0], growable: true);
-                        scanKeyList.clear();
+                        context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                       });
                       selectAndSize();
                     },
@@ -206,32 +202,45 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                   ),
                 ],
               ),
-              Expanded(child: ListView.separated(
-                itemCount: scanKeyList.length,
-                itemBuilder: (context, index) {
-                  String keyName = scanKeyList[index];
-                  bool selected = StringUtil.isEqual(selectedKey, keyName);
-                  return InkWell(
-                    onTap: () {
-                      _selectKey(keyName);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          selected ? Icon(Icons.check, color: Colors.green,) : Container(),
-                          SizedBox(width: selected ? 5 : 0,),
-                          Text(keyName),
+              BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+                buildWhen: (previous, current) {
+                  return StringUtil.isNotEqual(previous.selectedKey, current.selectedKey)
+                    || previous.scanKeyList != current.scanKeyList;
+                },
+                builder: (context, state) {
+                  return Expanded(child: ListView.separated(
+                    itemCount: state.scanKeyList?.length??0,
+                    itemBuilder: (context, index) {
+                      String keyName = state.scanKeyList[index];
+                      bool selected = StringUtil.isEqual(state.selectedKey, keyName);
+                      return InkWell(
+                        onTap: () {
+                          _getKeyDetail(keyName).then((keyDetail) {
+                            if(keyDetail != null) {
+                              context.read<DatabasePanelBloc>().add(KeyDetailChanged(keyDetail));
+                              context.read<DatabasePanelBloc>().add(SelectedKeyChanged(keyName));
+                            }
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            children: [
+                              selected ? Icon(Icons.check, color: Colors.green,) : Container(),
+                              SizedBox(width: selected ? 5 : 0,),
+                              Text(keyName),
 
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return Divider();
-                },
-              )),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) {
+                      return Divider();
+                    },
+                  ));
+                }
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -277,22 +286,22 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
             ],
           ),
         ),
-        Expanded(child: BlocProvider(
-          key: ValueKey(keyDetail?.key??""),
-          create: (context) => KeyDetailBloc(context, KeyDetailData((b) => b
-            ..panelUUID=widget.panelUUID
-            ..connection=connection.toBuilder()
-            ..keyDetail=keyDetail
-          )),
-          child: _keyDetailPanel()
+        Expanded(child: BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+          buildWhen: (previous, current) {
+            return StringUtil.isNotEqual(previous.selectedKey, current.selectedKey)
+                || previous.keyDetail != current.keyDetail;
+          },
+          builder: (context, state) {
+            return _keyDetailPanel(state.keyDetail);
+          }
         ),),
       ],
     );
   }
-  var keyDetail;
-  void _selectKey(String key) async {
-    selectedKey = key;
+
+  Future<BaseKeyDetail> _getKeyDetail(String key) async {
     try {
+      var keyDetail;
       String keyType = await Redis.instance.execute(connection.id, panelInfo.uuid, "type $key");
       if(StringUtil.isEqual("string", keyType)) {
         String keyValue = await Redis.instance.execute(connection.id, panelInfo.uuid, "get $key");
@@ -311,16 +320,14 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       int keyTTL = await Redis.instance.execute(connection.id, panelInfo.uuid, "ttl $key");
       keyDetail = keyDetail.rebuild((b)=>b..ttl=keyTTL);
       Log.d("KeyDetail: $keyDetail");
+      return keyDetail;
     } catch(e) {
       BotToast.showText(text: "$e");
+      return null;
     }
-    setState(() {
-
-    });
-
   }
 
-  Widget _keyDetailPanel() {
+  Widget _keyDetailPanel(BaseKeyDetail keyDetail) {
     if(keyDetail == null) {
       return Container();
     }

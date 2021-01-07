@@ -1,60 +1,79 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'key_detail_data.dart';
+part of 'database_panel_data.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$KeyDetailData extends KeyDetailData {
+class _$DatabasePanelData extends DatabasePanelData {
   @override
   final String panelUUID;
   @override
   final NewConnectionData connection;
   @override
   final BaseKeyDetail keyDetail;
+  @override
+  final String selectedKey;
+  @override
+  final BuiltList<String> scanKeyList;
 
-  factory _$KeyDetailData([void Function(KeyDetailDataBuilder) updates]) =>
-      (new KeyDetailDataBuilder()..update(updates)).build();
+  factory _$DatabasePanelData(
+          [void Function(DatabasePanelDataBuilder) updates]) =>
+      (new DatabasePanelDataBuilder()..update(updates)).build();
 
-  _$KeyDetailData._({this.panelUUID, this.connection, this.keyDetail})
+  _$DatabasePanelData._(
+      {this.panelUUID,
+      this.connection,
+      this.keyDetail,
+      this.selectedKey,
+      this.scanKeyList})
       : super._();
 
   @override
-  KeyDetailData rebuild(void Function(KeyDetailDataBuilder) updates) =>
+  DatabasePanelData rebuild(void Function(DatabasePanelDataBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  KeyDetailDataBuilder toBuilder() => new KeyDetailDataBuilder()..replace(this);
+  DatabasePanelDataBuilder toBuilder() =>
+      new DatabasePanelDataBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is KeyDetailData &&
+    return other is DatabasePanelData &&
         panelUUID == other.panelUUID &&
         connection == other.connection &&
-        keyDetail == other.keyDetail;
+        keyDetail == other.keyDetail &&
+        selectedKey == other.selectedKey &&
+        scanKeyList == other.scanKeyList;
   }
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, panelUUID.hashCode), connection.hashCode),
-        keyDetail.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc($jc($jc(0, panelUUID.hashCode), connection.hashCode),
+                keyDetail.hashCode),
+            selectedKey.hashCode),
+        scanKeyList.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('KeyDetailData')
+    return (newBuiltValueToStringHelper('DatabasePanelData')
           ..add('panelUUID', panelUUID)
           ..add('connection', connection)
-          ..add('keyDetail', keyDetail))
+          ..add('keyDetail', keyDetail)
+          ..add('selectedKey', selectedKey)
+          ..add('scanKeyList', scanKeyList))
         .toString();
   }
 }
 
-class KeyDetailDataBuilder
-    implements Builder<KeyDetailData, KeyDetailDataBuilder> {
-  _$KeyDetailData _$v;
+class DatabasePanelDataBuilder
+    implements Builder<DatabasePanelData, DatabasePanelDataBuilder> {
+  _$DatabasePanelData _$v;
 
   String _panelUUID;
   String get panelUUID => _$this._panelUUID;
@@ -70,48 +89,65 @@ class KeyDetailDataBuilder
   BaseKeyDetail get keyDetail => _$this._keyDetail;
   set keyDetail(BaseKeyDetail keyDetail) => _$this._keyDetail = keyDetail;
 
-  KeyDetailDataBuilder();
+  String _selectedKey;
+  String get selectedKey => _$this._selectedKey;
+  set selectedKey(String selectedKey) => _$this._selectedKey = selectedKey;
 
-  KeyDetailDataBuilder get _$this {
+  ListBuilder<String> _scanKeyList;
+  ListBuilder<String> get scanKeyList =>
+      _$this._scanKeyList ??= new ListBuilder<String>();
+  set scanKeyList(ListBuilder<String> scanKeyList) =>
+      _$this._scanKeyList = scanKeyList;
+
+  DatabasePanelDataBuilder();
+
+  DatabasePanelDataBuilder get _$this {
     if (_$v != null) {
       _panelUUID = _$v.panelUUID;
       _connection = _$v.connection?.toBuilder();
       _keyDetail = _$v.keyDetail;
+      _selectedKey = _$v.selectedKey;
+      _scanKeyList = _$v.scanKeyList?.toBuilder();
       _$v = null;
     }
     return this;
   }
 
   @override
-  void replace(KeyDetailData other) {
+  void replace(DatabasePanelData other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other as _$KeyDetailData;
+    _$v = other as _$DatabasePanelData;
   }
 
   @override
-  void update(void Function(KeyDetailDataBuilder) updates) {
+  void update(void Function(DatabasePanelDataBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$KeyDetailData build() {
-    _$KeyDetailData _$result;
+  _$DatabasePanelData build() {
+    _$DatabasePanelData _$result;
     try {
       _$result = _$v ??
-          new _$KeyDetailData._(
+          new _$DatabasePanelData._(
               panelUUID: panelUUID,
               connection: _connection?.build(),
-              keyDetail: keyDetail);
+              keyDetail: keyDetail,
+              selectedKey: selectedKey,
+              scanKeyList: _scanKeyList?.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'connection';
         _connection?.build();
+
+        _$failedField = 'scanKeyList';
+        _scanKeyList?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'KeyDetailData', _$failedField, e.toString());
+            'DatabasePanelData', _$failedField, e.toString());
       }
       rethrow;
     }

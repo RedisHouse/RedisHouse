@@ -1,12 +1,10 @@
-
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
-import 'package:redis_house/model/serializers.dart';
 
-part 'key_detail_data.g.dart';
+part 'database_panel_data.g.dart';
 
-abstract class KeyDetailData implements Built<KeyDetailData, KeyDetailDataBuilder>  {
+abstract class DatabasePanelData implements Built<DatabasePanelData, DatabasePanelDataBuilder>  {
 
   @nullable
   String get panelUUID;
@@ -17,11 +15,16 @@ abstract class KeyDetailData implements Built<KeyDetailData, KeyDetailDataBuilde
   @nullable
   BaseKeyDetail get keyDetail;
 
-  KeyDetailData._();
-  factory KeyDetailData([updates(KeyDetailDataBuilder b)]) = _$KeyDetailData;
+  @nullable
+  String get selectedKey;
+
+  @nullable
+  BuiltList<String> get scanKeyList;
+
+  DatabasePanelData._();
+  factory DatabasePanelData([updates(DatabasePanelDataBuilder b)]) = _$DatabasePanelData;
 
 }
-
 
 abstract class BaseKeyDetail {
 

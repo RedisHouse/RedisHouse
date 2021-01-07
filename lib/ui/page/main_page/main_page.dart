@@ -5,7 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ndialog/ndialog.dart';
+import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/main_page_bloc.dart';
+import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/model/main_page_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/bloc/new_connection_bloc.dart';
@@ -218,7 +220,14 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
               if(StringUtil.isEqual("console", element.type)) {
                 panelWidget = ConsolePanel(element.uuid);
               } else if(StringUtil.isEqual("db", element.type)) {
-                panelWidget =  DatabasePanel(element.uuid);
+                panelWidget =  BlocProvider(
+                  key: ValueKey(element.uuid),
+                  create: (context) => DatabasePanelBloc(context, DatabasePanelData((b)=>b
+                    ..connection=element.connection.toBuilder()
+                    ..panelUUID=element.uuid
+                  )),
+                  child: DatabasePanel(element.uuid),
+                );
               } else if(StringUtil.isEqual("info", element.type)) {
                 panelWidget =  InfoPanel();
               } else {
