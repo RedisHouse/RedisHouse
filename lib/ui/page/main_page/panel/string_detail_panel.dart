@@ -13,6 +13,8 @@ import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 
 class StringDetailPanel extends StatefulWidget {
+  final String keyName;
+  StringDetailPanel(this.keyName) : super(key: ValueKey(keyName));
   @override
   State<StatefulWidget> createState() {
     return _StringDetailPanelState();
@@ -37,7 +39,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null) {
+      if(data != null && data.keyDetail != null && data.keyDetail is StringKeyDetail) {
         StringKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _valueEditingController.text = keyDetail.value;
@@ -50,8 +52,6 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
     _valueEditingController.text = keyDetail.value;
     _renameTextEditingController.text = keyDetail.key;
     _ttlTextEditingController.text = "${keyDetail.ttl}";
-
-    Log.d("TTL: ${keyDetail.ttl}");
   }
 
   @override

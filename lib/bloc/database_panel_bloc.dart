@@ -26,6 +26,18 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         if(keyDetail is StringKeyDetail) {
           StringKeyDetail stringKeyDetail = keyDetail;
           keyDetail = stringKeyDetail.rebuild((b) => b.ttl=event.ttl);
+        } else if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b.ttl=event.ttl);
+        } else if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) => b.ttl=event.ttl);
+        } else if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b.ttl=event.ttl);
+        } else if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail zsetKeyDetail = keyDetail;
+          keyDetail = zsetKeyDetail.rebuild((b) => b.ttl=event.ttl);
         }
         b.keyDetail = keyDetail;
       });
@@ -46,6 +58,18 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         if(keyDetail is StringKeyDetail) {
           StringKeyDetail stringKeyDetail = keyDetail;
           keyDetail = stringKeyDetail.rebuild((b) => b.key=event.newKeyName);
+        } else if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b.key=event.newKeyName);
+        } else if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) => b.key=event.newKeyName);
+        } else if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b.key=event.newKeyName);
+        } else if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail zsetKeyDetail = keyDetail;
+          keyDetail = zsetKeyDetail.rebuild((b) => b.key=event.newKeyName);
         }
         b.keyDetail = keyDetail;
         b.scanKeyList.remove(event.keyName);

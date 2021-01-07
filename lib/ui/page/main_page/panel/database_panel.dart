@@ -332,15 +332,15 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       return Container();
     }
     if(StringUtil.isEqual("string", keyDetail.type)) {
-      return StringDetailPanel();
+      return StringDetailPanel(keyDetail.key);
     } else if(StringUtil.isEqual("hash", keyDetail.type)) {
-      return HashDetailPanel(keyDetail);
+      return HashDetailPanel(keyDetail.key);
     } else if(StringUtil.isEqual("list", keyDetail.type)) {
-      return ListDetailPanel(keyDetail);
+      return ListDetailPanel(keyDetail.key);
     } else if(StringUtil.isEqual("set", keyDetail.type)) {
-      return SetDetailPanel(keyDetail);
+      return SetDetailPanel(keyDetail.key);
     } else if(StringUtil.isEqual("zset", keyDetail.type)) {
-      return ZSetDetailPanel(keyDetail);
+      return ZSetDetailPanel(keyDetail.key);
     }
     return Container();
   }
