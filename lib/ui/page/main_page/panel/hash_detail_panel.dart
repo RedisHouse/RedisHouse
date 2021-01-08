@@ -39,7 +39,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null && data.keyDetail is HashKeyDetail) {
+      if(mounted && data != null && data.keyDetail != null && data.keyDetail is HashKeyDetail) {
         HashKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _renameTextEditingController.text = keyDetail.key;

@@ -160,6 +160,8 @@ class _$StringKeyDetail extends StringKeyDetail {
   @override
   final String value;
   @override
+  final String newValue;
+  @override
   final String key;
   @override
   final String type;
@@ -169,7 +171,9 @@ class _$StringKeyDetail extends StringKeyDetail {
   factory _$StringKeyDetail([void Function(StringKeyDetailBuilder) updates]) =>
       (new StringKeyDetailBuilder()..update(updates)).build();
 
-  _$StringKeyDetail._({this.value, this.key, this.type, this.ttl}) : super._();
+  _$StringKeyDetail._(
+      {this.value, this.newValue, this.key, this.type, this.ttl})
+      : super._();
 
   @override
   StringKeyDetail rebuild(void Function(StringKeyDetailBuilder) updates) =>
@@ -184,6 +188,7 @@ class _$StringKeyDetail extends StringKeyDetail {
     if (identical(other, this)) return true;
     return other is StringKeyDetail &&
         value == other.value &&
+        newValue == other.newValue &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -192,7 +197,8 @@ class _$StringKeyDetail extends StringKeyDetail {
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc(0, value.hashCode), key.hashCode), type.hashCode),
+        $jc($jc($jc($jc(0, value.hashCode), newValue.hashCode), key.hashCode),
+            type.hashCode),
         ttl.hashCode));
   }
 
@@ -200,6 +206,7 @@ class _$StringKeyDetail extends StringKeyDetail {
   String toString() {
     return (newBuiltValueToStringHelper('StringKeyDetail')
           ..add('value', value)
+          ..add('newValue', newValue)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -214,6 +221,10 @@ class StringKeyDetailBuilder
   String _value;
   String get value => _$this._value;
   set value(String value) => _$this._value = value;
+
+  String _newValue;
+  String get newValue => _$this._newValue;
+  set newValue(String newValue) => _$this._newValue = newValue;
 
   String _key;
   String get key => _$this._key;
@@ -232,6 +243,7 @@ class StringKeyDetailBuilder
   StringKeyDetailBuilder get _$this {
     if (_$v != null) {
       _value = _$v.value;
+      _newValue = _$v.newValue;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -256,7 +268,8 @@ class StringKeyDetailBuilder
   @override
   _$StringKeyDetail build() {
     final _$result = _$v ??
-        new _$StringKeyDetail._(value: value, key: key, type: type, ttl: ttl);
+        new _$StringKeyDetail._(
+            value: value, newValue: newValue, key: key, type: type, ttl: ttl);
     replace(_$result);
     return _$result;
   }

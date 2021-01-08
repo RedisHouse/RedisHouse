@@ -38,7 +38,7 @@ class _ZSetDetailPanelState extends State<ZSetDetailPanel> with AfterInitMixin<Z
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null && data.keyDetail is ZSetKeyDetail) {
+      if(mounted && data != null && data.keyDetail != null && data.keyDetail is ZSetKeyDetail) {
         ZSetKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _renameTextEditingController.text = keyDetail.key;

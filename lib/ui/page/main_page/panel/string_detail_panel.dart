@@ -11,6 +11,7 @@ import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/util/string_util.dart';
 
 class StringDetailPanel extends StatefulWidget {
   final String keyName;
@@ -32,17 +33,17 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
   @override
   void initState() {
     super.initState();
-
+    _valueEditingController.addListener(_valueChanged);
   }
 
   StreamSubscription keyDetailStreamSubscription;
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null && data.keyDetail is StringKeyDetail) {
+      if(mounted && data != null && data.keyDetail != null && data.keyDetail is StringKeyDetail) {
         StringKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
-        _valueEditingController.text = keyDetail.value;
+        //_valueEditingController.text = keyDetail.value;
         _renameTextEditingController.text = keyDetail.key;
         _ttlTextEditingController.text = "${keyDetail.ttl}";
       }
@@ -59,9 +60,14 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
     super.dispose();
     keyDetailStreamSubscription?.cancel();
     _keyEditingController?.dispose();
+    _valueEditingController?.removeListener(_valueChanged);
     _valueEditingController?.dispose();
     _renameTextEditingController?.dispose();
     _ttlTextEditingController?.dispose();
+  }
+
+  void _valueChanged() {
+    context.read<DatabasePanelBloc>().add(KeyDetailNewValue(_valueEditingController.text));
   }
 
   @override
@@ -70,6 +76,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
       builder: (BuildContext context, state) {
         var panelUUID = state.panelUUID;
         var connection = state.connection;
+        StringKeyDetail keyDetail = state.keyDetail;
         return Column(
           children: [
             Padding(
@@ -213,6 +220,28 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                 ),
               ),
             )),
+            Offstage(
+              offstage: StringUtil.isEqual(keyDetail.value, _valueEditingController.text),
+              child: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 8, bottom: 8),
+                child: MaterialButton(
+                  color: Colors.blue,
+                  onPressed: () {
+                    Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
+                      if(StringUtil.isEqual("OK", value)) {
+                        context.read<DatabasePanelBloc>().add(KeyDetailValueChanged(_valueEditingController.text));
+                      } else {
+                        BotToast.showText(text: "$value");
+                      }
+                    }).catchError((e) {
+                      BotToast.showText(text: "$e");
+                    });
+                  },
+                  child: Text("更新"),
+                ),
+              ),
+            ),
           ],
         );
       },

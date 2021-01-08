@@ -17,7 +17,7 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
     } else if(event is ScanKeyListChanged) {
       yield state.rebuild((b) => b.scanKeyList=event.scanKeyList.toBuiltList().toBuilder());
     } else if(event is ScanKeyListClear) {
-      yield state.rebuild((b) => b..selectedKey=""..scanKeyList.clear());
+      yield state.rebuild((b) => b..selectedKey=""..scanKeyList.clear()..keyDetail=null);
     } else if(event is KeyDetailChanged) {
       yield state.rebuild((b) => b..keyDetail=event.keyDetail);
     } else if(event is KeyTTLChanged) {
@@ -48,6 +48,48 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         }
         b.scanKeyList.remove(event.key);
         b.keyDetail=null;
+      });
+    } else if(event is KeyDetailNewValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is StringKeyDetail) {
+          StringKeyDetail stringKeyDetail = keyDetail;
+          keyDetail = stringKeyDetail.rebuild((b) => b.newValue=event.newValue);
+        } else if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail zsetKeyDetail = keyDetail;
+          keyDetail = zsetKeyDetail.rebuild((b) => b);
+        }
+        b.keyDetail = keyDetail;
+      });
+    } else if(event is KeyDetailValueChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is StringKeyDetail) {
+          StringKeyDetail stringKeyDetail = keyDetail;
+          keyDetail = stringKeyDetail.rebuild((b) => b.value=event.value);
+        } else if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b);
+        } else if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail zsetKeyDetail = keyDetail;
+          keyDetail = zsetKeyDetail.rebuild((b) => b);
+        }
+        b.keyDetail = keyDetail;
       });
     } else if(event is DatabasePanelKeyRenameEvent) {
       yield state.rebuild((b) {
@@ -101,6 +143,16 @@ class KeyTTLChanged extends DatabasePanelEvent {
 class KeyDelete extends DatabasePanelEvent {
   String key;
   KeyDelete(this.key);
+}
+
+class KeyDetailNewValue extends DatabasePanelEvent {
+  String newValue;
+  KeyDetailNewValue(this.newValue);
+}
+
+class KeyDetailValueChanged extends DatabasePanelEvent {
+  String value;
+  KeyDetailValueChanged(this.value);
 }
 
 class ScanKeyListChanged extends DatabasePanelEvent {

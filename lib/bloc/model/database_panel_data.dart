@@ -44,6 +44,9 @@ abstract class StringKeyDetail implements BaseKeyDetail, Built<StringKeyDetail, 
   @nullable
   String get value;
 
+  @nullable
+  String get newValue;
+
   StringKeyDetail._();
   factory StringKeyDetail([updates(StringKeyDetailBuilder b)]) = _$StringKeyDetail;
 

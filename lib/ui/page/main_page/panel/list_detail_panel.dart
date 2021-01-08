@@ -38,7 +38,7 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null && data.keyDetail is ListKeyDetail) {
+      if(mounted && data != null && data.keyDetail != null && data.keyDetail is ListKeyDetail) {
         ListKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _renameTextEditingController.text = keyDetail.key;

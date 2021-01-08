@@ -38,7 +38,7 @@ class _SetDetailPanelState extends State<SetDetailPanel> with AfterInitMixin<Set
   @override
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
-      if(data != null && data.keyDetail != null && data.keyDetail is SetKeyDetail) {
+      if(mounted && data != null && data.keyDetail != null && data.keyDetail is SetKeyDetail) {
         SetKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _renameTextEditingController.text = keyDetail.key;
