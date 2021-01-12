@@ -43,7 +43,6 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
       if(mounted && data != null && data.keyDetail != null && data.keyDetail is StringKeyDetail) {
         StringKeyDetail keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
-        //_valueEditingController.text = keyDetail.value;
         _renameTextEditingController.text = keyDetail.key;
         _ttlTextEditingController.text = "${keyDetail.ttl}";
       }
@@ -67,7 +66,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
   }
 
   void _valueChanged() {
-    context.read<DatabasePanelBloc>().add(KeyDetailNewValue(_valueEditingController.text));
+    context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
   }
 
   @override
@@ -125,7 +124,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, "renamenx ${state.keyDetail.key} ${_renameTextEditingController.text}").then((value) {
                             if(value == 1) {
-                              context.read<DatabasePanelBloc>().add(DatabasePanelKeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
+                              context.read<DatabasePanelBloc>().add(KeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
                               BotToast.showText(text: "重命名成功。");
                             } else {
                               BotToast.showText(text: "KEY 已存在！");
@@ -230,7 +229,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                   onPressed: () {
                     Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
                       if(StringUtil.isEqual("OK", value)) {
-                        context.read<DatabasePanelBloc>().add(KeyDetailValueChanged(_valueEditingController.text));
+                        context.read<DatabasePanelBloc>().add(StringValueChanged(_valueEditingController.text));
                       } else {
                         BotToast.showText(text: "$value");
                       }

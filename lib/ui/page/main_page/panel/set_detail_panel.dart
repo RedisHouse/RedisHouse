@@ -115,7 +115,7 @@ class _SetDetailPanelState extends State<SetDetailPanel> with AfterInitMixin<Set
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, "renamenx ${state.keyDetail.key} ${_renameTextEditingController.text}").then((value) {
                             if(value == 1) {
-                              context.read<DatabasePanelBloc>().add(DatabasePanelKeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
+                              context.read<DatabasePanelBloc>().add(KeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
                               BotToast.showText(text: "重命名成功。");
                             } else {
                               BotToast.showText(text: "KEY 已存在！");

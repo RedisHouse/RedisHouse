@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
           primaryColor: Color(0XFF1D2033),
           scaffoldBackgroundColor: Color(0XFF14172A),
           brightness: Brightness.dark,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
           textTheme: TextTheme(
             caption: TextStyle(color: Colors.white),
             headline1: TextStyle(color: Colors.white),

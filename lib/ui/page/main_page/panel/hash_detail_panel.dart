@@ -116,7 +116,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                         if(value??false) {
                           Redis.instance.execute(connection.id, panelUUID, "renamenx ${state.keyDetail.key} ${_renameTextEditingController.text}").then((value) {
                             if(value == 1) {
-                              context.read<DatabasePanelBloc>().add(DatabasePanelKeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
+                              context.read<DatabasePanelBloc>().add(KeyRenameEvent(state.keyDetail.key, _renameTextEditingController.text));
                               BotToast.showText(text: "重命名成功。");
                             } else {
                               BotToast.showText(text: "KEY 已存在！");
@@ -197,6 +197,61 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                       });
                     },
                     child: Text("删除"),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              color: Colors.black26,
+              child: Table(
+                columnWidths: {
+                  0: FlexColumnWidth(1),
+                  1: FlexColumnWidth(2),
+                  2: FlexColumnWidth(3),
+                },
+                children: [
+                  TableRow(
+                    children: [
+                      Text("ROW"),
+                      Text("KEY"),
+                      Text("VALUE"),
+                    ]
+                  ),
+                  TableRow(
+                      children: [
+                        Text("1"),
+                        Text("key1"),
+                        Text("value1"),
+                      ]
+                  ),
+                  TableRow(
+                      children: [
+                        Text("2"),
+                        Text("key2"),
+                        Text("value2"),
+                      ]
+                  ),
+                  TableRow(
+                      children: [
+                        Text("3"),
+                        Text("key3"),
+                        Text("value3"),
+                      ]
+                  ),
+                  TableRow(
+                      children: [
+                        Text("4"),
+                        Text("key4"),
+                        Text("value4"),
+                      ]
+                  ),
+                  TableRow(
+                      children: [
+                        Text("5"),
+                        Text("key5"),
+                        Text("value5"),
+                      ]
                   ),
                 ],
               ),
