@@ -1,6 +1,5 @@
 
 import 'dart:async';
-
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +27,8 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
 
   TextEditingController _renameTextEditingController = TextEditingController();
   TextEditingController _ttlTextEditingController = TextEditingController();
+
+  TextEditingController _scanFilterTextEditingController = TextEditingController();
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     _valueEditingController?.dispose();
     _renameTextEditingController?.dispose();
     _ttlTextEditingController?.dispose();
+    _scanFilterTextEditingController?.dispose();
   }
 
   @override
@@ -201,61 +203,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              color: Colors.black26,
-              child: Table(
-                columnWidths: {
-                  0: FlexColumnWidth(1),
-                  1: FlexColumnWidth(2),
-                  2: FlexColumnWidth(3),
-                },
-                children: [
-                  TableRow(
-                    children: [
-                      Text("ROW"),
-                      Text("KEY"),
-                      Text("VALUE"),
-                    ]
-                  ),
-                  TableRow(
-                      children: [
-                        Text("1"),
-                        Text("key1"),
-                        Text("value1"),
-                      ]
-                  ),
-                  TableRow(
-                      children: [
-                        Text("2"),
-                        Text("key2"),
-                        Text("value2"),
-                      ]
-                  ),
-                  TableRow(
-                      children: [
-                        Text("3"),
-                        Text("key3"),
-                        Text("value3"),
-                      ]
-                  ),
-                  TableRow(
-                      children: [
-                        Text("4"),
-                        Text("key4"),
-                        Text("value4"),
-                      ]
-                  ),
-                  TableRow(
-                      children: [
-                        Text("5"),
-                        Text("key5"),
-                        Text("value5"),
-                      ]
-                  ),
-                ],
-              ),
-            ),
+            _keyValuePanel(),
             Expanded(child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -272,4 +220,223 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     );
   }
 
+  Widget _keyValuePanel() {
+    return BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+      buildWhen: (previous, current) {
+        return previous.keyDetail != current.keyDetail;
+      },
+      builder: (context, state) {
+        HashKeyDetail keyDetail = state.keyDetail;
+        return Container(
+          padding: const EdgeInsets.all(8.0),
+          color: Colors.black26,
+          height: 300,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(width: 1,),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            color: Colors.blueGrey,
+                            child: Center(child: Text("ROW")),
+                          ),
+                        ),
+                        SizedBox(width: 1,),
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            color: Colors.blueGrey,
+                            child: Center(child: Text("KEY")),
+                          ),
+                        ),
+                        SizedBox(width: 1,),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            color: Colors.blueGrey,
+                            child: Center(child: Text("VALUE")),
+                          ),
+                        ),
+                        SizedBox(width: 1,),
+                      ],
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Table(
+                          columnWidths: {
+                            0: FlexColumnWidth(1),
+                            1: FlexColumnWidth(2),
+                            2: FlexColumnWidth(3),
+                          },
+                          border: TableBorder.all(),
+                          children: _hashKeyValueRow(keyDetail),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8,),
+              _controlKeyValuePanel(),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  List<TableRow> _hashKeyValueRow(HashKeyDetail keyDetail) {
+    if(keyDetail.scanKeyValueMap == null || keyDetail.scanKeyValueMap.isEmpty) {
+      return [];
+    }
+    int counter = 1;
+    return keyDetail.scanKeyValueMap.map<String, TableRow>((key, value) {
+      return MapEntry(key, TableRow(
+        decoration: BoxDecoration(
+            color: Colors.blueGrey.withAlpha(128)
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(child: Text("${counter++}")),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(child: Text("$key")),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(child: Text("$value")),
+          ),
+        ]
+      ));
+    }).values.toList();
+  }
+
+  Widget _controlKeyValuePanel() {
+    return BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+        buildWhen: (previous, current) {
+          return previous.keyDetail != current.keyDetail;
+        },
+      builder: (context, state) {
+        HashKeyDetail keyDetail = state.keyDetail;
+        return Container(
+          width: 200,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      MaterialButton(
+                        color: Colors.blueAccent.withAlpha(128),
+                        onPressed: () {
+                          BotToast.showText(text: "刷新");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.refresh),
+                              SizedBox(width: 5,),
+                              Text("刷新")
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 2,),
+                      MaterialButton(
+                        color: Colors.blueAccent.withAlpha(128),
+                        onPressed: () {
+                          BotToast.showText(text: "添加行");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add),
+                              SizedBox(width: 5,),
+                              Text("添加行")
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 2,),
+                      MaterialButton(
+                        color: Colors.blueAccent.withAlpha(128),
+                        onPressed: () {
+                          BotToast.showText(text: "删除行");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete),
+                              SizedBox(width: 5,),
+                              Text("删除行")
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8,),
+                      TextField(
+                        controller: _scanFilterTextEditingController,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                          labelText: "KEY 关键字",
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.singleLineFormatter,
+                        ],
+                      ),
+                      SizedBox(height: 8,),
+
+                    ],
+                  ),
+                ),
+              ),
+              Text("Keys: ${keyDetail.hlen}"),
+              Row(
+                children: [
+                  Expanded(child: MaterialButton(
+                    onPressed: () {
+
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.arrow_back),
+                    )
+                  )),
+                  Expanded(child: MaterialButton(
+                      onPressed: () {
+
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(Icons.arrow_forward),
+                      )
+                  )),
+                ],
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+  
 }

@@ -54,6 +54,14 @@ abstract class StringKeyDetail implements BaseKeyDetail, Built<StringKeyDetail, 
 
 abstract class HashKeyDetail implements BaseKeyDetail, Built<HashKeyDetail, HashKeyDetailBuilder>  {
 
+  @nullable
+  int get hlen;
+
+  @nullable
+  int get scanIndex;
+
+  @nullable
+  BuiltMap<String, String> get scanKeyValueMap;
 
   HashKeyDetail._();
   factory HashKeyDetail([updates(HashKeyDetailBuilder b)]) = _$HashKeyDetail;

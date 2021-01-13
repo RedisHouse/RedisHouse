@@ -1,6 +1,7 @@
 
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:menu_button/menu_button.dart';
@@ -35,7 +36,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   int dbSize = 0;
   String dbIndex = "0";
 
-  int scanCount = 20;
+  int scanCount = 100;
   int navScanIndex = 0;
   List<int> navScanIndexList = List.of([0], growable: true);
 
@@ -308,6 +309,22 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         keyDetail = StringKeyDetail((b)=>b..key=key..type=keyType..value=keyValue);
       } else if(StringUtil.isEqual("hash", keyType)) {
         keyDetail = HashKeyDetail((b)=>b..key=key..type=keyType);
+        int hlen = await Redis.instance.execute(connection.id, panelInfo.uuid, "hlen $key");
+        var scanResult = await Redis.instance.execute(connection.id, panelInfo.uuid, "hscan $key 0 count 100");
+        int scanIndex = int.tryParse(scanResult[0]);
+        List<String> keyValueList = List.of(scanResult[1]).map((e) => "$e").toList();
+        Map<String, String> scanKeyValueMap = {};
+        keyValueList.asMap().forEach((index, element) {
+          if(index % 2 != 0) {
+            scanKeyValueMap["${keyValueList[index-1]}"] = "$element";
+          }
+        });
+
+        keyDetail = keyDetail.rebuild((b)=>b
+          ..hlen = hlen
+          ..scanIndex = scanIndex
+          ..scanKeyValueMap = BuiltMap<String, String>.from(scanKeyValueMap).toBuilder()
+        );
       } else if(StringUtil.isEqual("list", keyType)) {
         keyDetail = ListKeyDetail((b)=>b..key=key..type=keyType);
       } else if(StringUtil.isEqual("set", keyType)) {

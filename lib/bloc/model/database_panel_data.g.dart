@@ -277,6 +277,12 @@ class StringKeyDetailBuilder
 
 class _$HashKeyDetail extends HashKeyDetail {
   @override
+  final int hlen;
+  @override
+  final int scanIndex;
+  @override
+  final BuiltMap<String, String> scanKeyValueMap;
+  @override
   final String key;
   @override
   final String type;
@@ -286,7 +292,14 @@ class _$HashKeyDetail extends HashKeyDetail {
   factory _$HashKeyDetail([void Function(HashKeyDetailBuilder) updates]) =>
       (new HashKeyDetailBuilder()..update(updates)).build();
 
-  _$HashKeyDetail._({this.key, this.type, this.ttl}) : super._();
+  _$HashKeyDetail._(
+      {this.hlen,
+      this.scanIndex,
+      this.scanKeyValueMap,
+      this.key,
+      this.type,
+      this.ttl})
+      : super._();
 
   @override
   HashKeyDetail rebuild(void Function(HashKeyDetailBuilder) updates) =>
@@ -299,6 +312,9 @@ class _$HashKeyDetail extends HashKeyDetail {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is HashKeyDetail &&
+        hlen == other.hlen &&
+        scanIndex == other.scanIndex &&
+        scanKeyValueMap == other.scanKeyValueMap &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -306,12 +322,22 @@ class _$HashKeyDetail extends HashKeyDetail {
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc(
+                $jc($jc($jc(0, hlen.hashCode), scanIndex.hashCode),
+                    scanKeyValueMap.hashCode),
+                key.hashCode),
+            type.hashCode),
+        ttl.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('HashKeyDetail')
+          ..add('hlen', hlen)
+          ..add('scanIndex', scanIndex)
+          ..add('scanKeyValueMap', scanKeyValueMap)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -322,6 +348,20 @@ class _$HashKeyDetail extends HashKeyDetail {
 class HashKeyDetailBuilder
     implements Builder<HashKeyDetail, HashKeyDetailBuilder> {
   _$HashKeyDetail _$v;
+
+  int _hlen;
+  int get hlen => _$this._hlen;
+  set hlen(int hlen) => _$this._hlen = hlen;
+
+  int _scanIndex;
+  int get scanIndex => _$this._scanIndex;
+  set scanIndex(int scanIndex) => _$this._scanIndex = scanIndex;
+
+  MapBuilder<String, String> _scanKeyValueMap;
+  MapBuilder<String, String> get scanKeyValueMap =>
+      _$this._scanKeyValueMap ??= new MapBuilder<String, String>();
+  set scanKeyValueMap(MapBuilder<String, String> scanKeyValueMap) =>
+      _$this._scanKeyValueMap = scanKeyValueMap;
 
   String _key;
   String get key => _$this._key;
@@ -339,6 +379,9 @@ class HashKeyDetailBuilder
 
   HashKeyDetailBuilder get _$this {
     if (_$v != null) {
+      _hlen = _$v.hlen;
+      _scanIndex = _$v.scanIndex;
+      _scanKeyValueMap = _$v.scanKeyValueMap?.toBuilder();
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -362,8 +405,27 @@ class HashKeyDetailBuilder
 
   @override
   _$HashKeyDetail build() {
-    final _$result =
-        _$v ?? new _$HashKeyDetail._(key: key, type: type, ttl: ttl);
+    _$HashKeyDetail _$result;
+    try {
+      _$result = _$v ??
+          new _$HashKeyDetail._(
+              hlen: hlen,
+              scanIndex: scanIndex,
+              scanKeyValueMap: _scanKeyValueMap?.build(),
+              key: key,
+              type: type,
+              ttl: ttl);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'scanKeyValueMap';
+        _scanKeyValueMap?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'HashKeyDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
