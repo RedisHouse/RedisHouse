@@ -31,18 +31,18 @@ func init() {
 	//	))
 	options = append(options,
 		flutter.WindowInitialDimensions(
-			1200,
-			800,
+			vidMoce.Width,
+            vidMoce.Height,
 		),
 		flutter.WindowDimensionLimits(
 			1200,
 			800,
-			vidMoce.Width-windowBorder*2,
-			vidMoce.Height-windowBorder*2,
+			vidMoce.Width,
+			vidMoce.Height,
 		),
 	)
 
 	//options = append(options,
-	//	flutter.WindowInitialLocation(windowBorder, windowBorder),
+	//	flutter.WindowInitialLocation(0, 0),
 	//)
 }

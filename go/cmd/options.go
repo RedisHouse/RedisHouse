@@ -7,7 +7,7 @@ import (
 )
 
 var options = []flutter.Option{
-	flutter.WindowInitialDimensions(1200, 800),
+	//flutter.WindowInitialDimensions(1200, 800),
 
 	flutter.AddPlugin(&file_picker.FilePickerPlugin{}),
 	flutter.AddPlugin(&redis_plugin.RedisPlugin{}),
