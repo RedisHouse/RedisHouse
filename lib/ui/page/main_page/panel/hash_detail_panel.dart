@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
+import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/ui/page/main_page/dialog/new_value_dialog.dart';
@@ -32,6 +33,14 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
   TextEditingController _scanFilterTextEditingController = TextEditingController();
   TextEditingController _selectedKeyEditingController = TextEditingController();
   TextEditingController _selectedValueEditingController = TextEditingController();
+
+  String panelUUID;
+  NewConnectionData connection;
+  String key;
+
+  int scanCount = 20;
+  int navScanIndex = 0;
+  List<int> navScanIndexList = List.of([0], growable: true);
 
   @override
   void initState() {
@@ -59,10 +68,16 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
         _ttlTextEditingController.text = "${keyDetail.ttl}";
       }
     });
-    HashKeyDetail keyDetail = context.read<DatabasePanelBloc>().state.keyDetail;
+    DatabasePanelData data = context.read<DatabasePanelBloc>().state;
+    key = data.keyDetail.key;
+    panelUUID = data.panelUUID;
+    connection = data.connection;
+    HashKeyDetail keyDetail = data.keyDetail;
+    navScanIndexList.add(keyDetail.scanIndex);
     _keyEditingController.text = keyDetail.key;
     _renameTextEditingController.text = keyDetail.key;
     _ttlTextEditingController.text = "${keyDetail.ttl}";
+
   }
 
   @override
@@ -80,12 +95,31 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     _selectedKeyEditingController?.dispose();
   }
 
+  scanKeyValueMap() {
+    var scanIndex = navScanIndexList[navScanIndex];
+    Log.d("scanIndex: $scanIndex, $navScanIndexList");
+    Redis.instance.execute(connection.id, panelUUID, "hscan $key $scanIndex count $scanCount").then((scanResult) {
+      Log.d("Key List: $scanResult");
+      if(navScanIndexList.length == 1 || navScanIndexList.last != 0) {
+        navScanIndexList.add(int.tryParse(scanResult[0]));
+      }
+      List<String> keyValueList = List.of(scanResult[1]).map((e) => "$e").toList();
+      Map<String, String> scanKeyValueMap = {};
+      keyValueList.asMap().forEach((index, element) {
+        if(index % 2 != 0) {
+          scanKeyValueMap["${keyValueList[index-1]}"] = "$element";
+        }
+      });
+      context.read<DatabasePanelBloc>().add(HashScanChanged(scanKeyValueMap));
+    }).catchError((e) {
+      BotToast.showText(text: "$e");
+    }).whenComplete(() => setState(() {}));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
       builder: (context, state) {
-        var panelUUID = state.panelUUID;
-        var connection = state.connection;
         HashKeyDetail keyDetail = state.keyDetail;
         return Column(
           children: [
@@ -432,8 +466,6 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
           return previous.keyDetail != current.keyDetail;
         },
       builder: (context, state) {
-        var panelUUID = state.panelUUID;
-        var connection = state.connection;
         HashKeyDetail keyDetail = state.keyDetail;
         return Container(
           width: 200,
@@ -443,11 +475,15 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text("Total: ${keyDetail.hlen} / Page: ${keyDetail.scanKeyValueMap.length}"),
+                      ),
                       MaterialButton(
                         color: Colors.blueAccent.withAlpha(128),
                         onPressed: () async {
                           int hlen = await Redis.instance.execute(connection.id, panelUUID, "hlen ${keyDetail.key}");
-                          var scanResult = await Redis.instance.execute(connection.id, panelUUID, "hscan ${keyDetail.key} 0 count 100");
+                          var scanResult = await Redis.instance.execute(connection.id, panelUUID, "hscan ${keyDetail.key} 0 count $scanCount");
                           int scanIndex = int.tryParse(scanResult[0]);
                           List<String> keyValueList = List.of(scanResult[1]).map((e) => "$e").toList();
                           Map<String, String> scanKeyValueMap = {};
@@ -455,6 +491,11 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                             if(index % 2 != 0) {
                               scanKeyValueMap["${keyValueList[index-1]}"] = "$element";
                             }
+                          });
+                          setState(() {
+                            navScanIndex = 0;
+                            navScanIndexList = List.of([0], growable: true);
+                            navScanIndexList.add(scanIndex);
                           });
                           context.read<DatabasePanelBloc>().add(HashRefresh(hlen, scanIndex, scanKeyValueMap));
                           BotToast.showText(text: "已刷新。");
@@ -489,6 +530,8 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                             tmpValue = result[2];
                             if(saveResult??false) {
                               context.read<DatabasePanelBloc>().add(HashNewKeyValue(tmpKey, tmpValue));
+                              _selectedKeyEditingController.text = tmpKey;
+                              _selectedValueEditingController.text = tmpValue;
                               tmpKey = "";
                               tmpValue = "";
                             }
@@ -577,21 +620,22 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                   ),
                 ),
               ),
-              Text("Keys: ${keyDetail.hlen}"),
               Row(
                 children: [
-                  Expanded(child: MaterialButton(
+                  Expanded(child:  navScanIndex <= 0 ? Container() : MaterialButton(
                     onPressed: () {
-
+                      navScanIndex--;
+                      scanKeyValueMap();
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.arrow_back),
                     )
                   )),
-                  Expanded(child: MaterialButton(
+                  Expanded(child: (navScanIndex >= navScanIndexList.length-1 || navScanIndexList[navScanIndex+1] == 0) ? Container() : MaterialButton(
                       onPressed: () {
-
+                        navScanIndex++;
+                        scanKeyValueMap();
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),

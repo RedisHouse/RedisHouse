@@ -36,7 +36,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   int dbSize = 0;
   String dbIndex = "0";
 
-  int scanCount = 100;
+  int scanCount = 20;
   int navScanIndex = 0;
   List<int> navScanIndexList = List.of([0], growable: true);
 
@@ -89,6 +89,9 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       }
       List<String> scanKeyList = List.of(value[1]).map((e) => "$e").toList();
       context.read<DatabasePanelBloc>().add(ScanKeyListChanged(scanKeyList));
+      setState(() {
+
+      });
     }).catchError((e) {
       BotToast.showText(text: "$e");
     });
@@ -245,40 +248,46 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  InkWell(
-                    onTap: navScanIndex  > 0 ? () {
-                      navScanIndex--;
-                      loadKeyList();
-                    } : null,
-                    hoverColor: Colors.red.withAlpha(128),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_back),
-                          SizedBox(width: 5,),
-                          Text("上一页")
-                        ],
+                  Offstage(
+                    offstage: navScanIndex <= 0,
+                    child: InkWell(
+                      onTap: () {
+                        navScanIndex--;
+                        loadKeyList();
+                      },
+                      hoverColor: Colors.red.withAlpha(128),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_back),
+                            SizedBox(width: 5,),
+                            Text("上一页")
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   Expanded(child: Container()),
-                  InkWell(
-                    onTap: (navScanIndex < navScanIndexList.length-1 && navScanIndexList[navScanIndex+1] != 0) ? () {
-                      navScanIndex++;
-                      loadKeyList();
-                    } : null,
-                    hoverColor: Colors.red.withAlpha(128),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_forward),
-                          SizedBox(width: 5,),
-                          Text("下一页")
-                        ],
+                  Offstage(
+                    offstage: navScanIndex >= navScanIndexList.length-1 || navScanIndexList[navScanIndex+1] == 0,
+                    child: InkWell(
+                      onTap: () {
+                        navScanIndex++;
+                        loadKeyList();
+                      },
+                      hoverColor: Colors.red.withAlpha(128),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_forward),
+                            SizedBox(width: 5,),
+                            Text("下一页")
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -310,7 +319,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       } else if(StringUtil.isEqual("hash", keyType)) {
         keyDetail = HashKeyDetail((b)=>b..key=key..type=keyType);
         int hlen = await Redis.instance.execute(connection.id, panelInfo.uuid, "hlen $key");
-        var scanResult = await Redis.instance.execute(connection.id, panelInfo.uuid, "hscan $key 0 count 100");
+        var scanResult = await Redis.instance.execute(connection.id, panelInfo.uuid, "hscan $key 0 count $scanCount");
         int scanIndex = int.tryParse(scanResult[0]);
         List<String> keyValueList = List.of(scanResult[1]).map((e) => "$e").toList();
         Map<String, String> scanKeyValueMap = {};

@@ -111,6 +111,17 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is HashScanChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b
+            ..scanKeyValueMap=BuiltMap<String, String>.from(event.scanKeyValueMap).toBuilder()
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
     } else if(event is HashNewKeyValue) {
       yield state.rebuild((b) {
         var keyDetail = b.keyDetail;
@@ -253,6 +264,11 @@ class HashRefresh extends DatabasePanelEvent {
   int scanIndex;
   Map<String, String> scanKeyValueMap;
   HashRefresh(this.hlen, this.scanIndex, this.scanKeyValueMap);
+}
+
+class HashScanChanged extends DatabasePanelEvent {
+  Map<String, String> scanKeyValueMap;
+  HashScanChanged(this.scanKeyValueMap);
 }
 
 class HashNewKeyValue extends DatabasePanelEvent {
