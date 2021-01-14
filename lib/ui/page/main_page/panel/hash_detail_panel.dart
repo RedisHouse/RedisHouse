@@ -10,6 +10,7 @@ import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/ui/page/main_page/dialog/new_value_dialog.dart';
 import 'package:redis_house/util/string_util.dart';
 
 class HashDetailPanel extends StatefulWidget {
@@ -422,6 +423,9 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     context.read<DatabasePanelBloc>().add(HashSelectedKeyValue(key, value));
   }
 
+  String tmpKey = "";
+  String tmpValue = "";
+
   Widget _controlKeyValuePanel() {
     return BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
         buildWhen: (previous, current) {
@@ -470,8 +474,25 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                       SizedBox(height: 2,),
                       MaterialButton(
                         color: Colors.blueAccent.withAlpha(128),
-                        onPressed: () {
-                          BotToast.showText(text: "添加行");
+                        onPressed: () async {
+                          List result = await showHashValueDialog(
+                            context,
+                            connection.id,
+                            panelUUID,
+                            keyDetail.key,
+                            tmpKey: tmpKey,
+                            tmpValue: tmpValue,
+                          );
+                          if(result != null && result.isNotEmpty) {
+                            bool saveResult = result[0];
+                            tmpKey = result[1];
+                            tmpValue = result[2];
+                            if(saveResult??false) {
+                              context.read<DatabasePanelBloc>().add(HashNewKeyValue(tmpKey, tmpValue));
+                              tmpKey = "";
+                              tmpValue = "";
+                            }
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
