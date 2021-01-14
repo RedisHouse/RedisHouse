@@ -10,6 +10,7 @@ import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/util/string_util.dart';
 
 class HashDetailPanel extends StatefulWidget {
   final String keyName;
@@ -23,17 +24,27 @@ class HashDetailPanel extends StatefulWidget {
 class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<HashDetailPanel> {
 
   TextEditingController _keyEditingController = TextEditingController();
-  TextEditingController _valueEditingController = TextEditingController();
 
   TextEditingController _renameTextEditingController = TextEditingController();
   TextEditingController _ttlTextEditingController = TextEditingController();
 
   TextEditingController _scanFilterTextEditingController = TextEditingController();
+  TextEditingController _selectedKeyEditingController = TextEditingController();
+  TextEditingController _selectedValueEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _selectedKeyEditingController.addListener(_selectedKeyChanged);
+    _selectedValueEditingController.addListener(_selectedValueChanged);
+  }
 
+  void _selectedKeyChanged() {
+    context.read<DatabasePanelBloc>().add(HashSelectedKeyChanged(_selectedKeyEditingController.text));
+  }
+
+  void _selectedValueChanged() {
+    context.read<DatabasePanelBloc>().add(HashSelectedValueChanged(_selectedValueEditingController.text));
   }
 
   StreamSubscription keyDetailStreamSubscription;
@@ -56,12 +67,16 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
   @override
   void dispose() {
     super.dispose();
+    _selectedKeyEditingController?.removeListener(_selectedKeyChanged);
+    _selectedValueEditingController?.removeListener(_selectedValueChanged);
+
     keyDetailStreamSubscription?.cancel();
     _keyEditingController?.dispose();
-    _valueEditingController?.dispose();
+    _selectedValueEditingController?.dispose();
     _renameTextEditingController?.dispose();
     _ttlTextEditingController?.dispose();
     _scanFilterTextEditingController?.dispose();
+    _selectedKeyEditingController?.dispose();
   }
 
   @override
@@ -70,6 +85,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
       builder: (context, state) {
         var panelUUID = state.panelUUID;
         var connection = state.connection;
+        HashKeyDetail keyDetail = state.keyDetail;
         return Column(
           children: [
             Padding(
@@ -204,16 +220,73 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
               ),
             ),
             _keyValuePanel(),
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Row(
+                children: [
+                  Expanded(child: TextField(
+                    controller: _selectedKeyEditingController,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                      border: OutlineInputBorder(),
+                    ),
+                  )),
+                  Offstage(
+                    offstage: StringUtil.isEqual(keyDetail.selectedKey, _selectedKeyEditingController.text),
+                    child: Container(
+                      padding: EdgeInsets.only(left: 8,),
+                      child: MaterialButton(
+                        color: Colors.blue,
+                        onPressed: () {
+                          // Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
+                          //   if(StringUtil.isEqual("OK", value)) {
+                          //     context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
+                          //   } else {
+                          //     BotToast.showText(text: "$value");
+                          //   }
+                          // }).catchError((e) {
+                          //   BotToast.showText(text: "$e");
+                          // });
+                        },
+                        child: Text("更新"),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
-                controller: _valueEditingController,
+                controller: _selectedValueEditingController,
                 maxLines: 200,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                 ),
               ),
             )),
+            Offstage(
+              offstage: StringUtil.isEqual(keyDetail.selectedValue, _selectedValueEditingController.text),
+              child: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 8, bottom: 8,),
+                child: MaterialButton(
+                  color: Colors.blue,
+                  onPressed: () {
+                    // Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
+                    //   if(StringUtil.isEqual("OK", value)) {
+                    //     context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
+                    //   } else {
+                    //     BotToast.showText(text: "$value");
+                    //   }
+                    // }).catchError((e) {
+                    //   BotToast.showText(text: "$e");
+                    // });
+                  },
+                  child: Text("更新"),
+                ),
+              ),
+            ),
           ],
         );
       }
@@ -294,6 +367,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     );
   }
 
+
   List<TableRow> _hashKeyValueRow(HashKeyDetail keyDetail) {
     if(keyDetail.scanKeyValueMap == null || keyDetail.scanKeyValueMap.isEmpty) {
       return [];
@@ -302,24 +376,42 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
     return keyDetail.scanKeyValueMap.map<String, TableRow>((key, value) {
       return MapEntry(key, TableRow(
         decoration: BoxDecoration(
-            color: Colors.blueGrey.withAlpha(128)
+            color: StringUtil.isEqual(keyDetail.selectedKey, key) ? Colors.greenAccent.withAlpha(128) : Colors.blueGrey.withAlpha(128)
         ),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(child: Text("${counter++}")),
+          GestureDetector(
+            onTap: () => _onKeySelected(key, value),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text("${counter++}")),
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(child: Text("$key")),
+          GestureDetector(
+            onTap: () => _onKeySelected(key, value),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text("$key")),
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(child: Text("$value")),
+          GestureDetector(
+            onTap: () => _onKeySelected(key, value),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text("$value")),
+            ),
           ),
         ]
       ));
     }).values.toList();
+  }
+
+  void _onKeySelected(String key, String value) {
+    _selectedKeyEditingController.text = key;
+    _selectedValueEditingController.text = value;
+    context.read<DatabasePanelBloc>().add(HashSelectedKeyValue(key, value));
   }
 
   Widget _controlKeyValuePanel() {

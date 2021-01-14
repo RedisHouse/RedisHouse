@@ -219,7 +219,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                           _getKeyDetail(keyName).then((keyDetail) {
                             if(keyDetail != null) {
                               context.read<DatabasePanelBloc>().add(KeyDetailChanged(keyDetail));
-                              context.read<DatabasePanelBloc>().add(SelectedKeyChanged(keyName));
+                              context.read<DatabasePanelBloc>().add(SelectedKey(keyName));
                             }
                           });
                         },

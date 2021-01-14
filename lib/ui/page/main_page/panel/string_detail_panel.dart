@@ -66,7 +66,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
   }
 
   void _valueChanged() {
-    context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
+    context.read<DatabasePanelBloc>().add(StringValueChanged(_valueEditingController.text));
   }
 
   @override
@@ -229,7 +229,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                   onPressed: () {
                     Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
                       if(StringUtil.isEqual("OK", value)) {
-                        context.read<DatabasePanelBloc>().add(StringValueChanged(_valueEditingController.text));
+                        context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
                       } else {
                         BotToast.showText(text: "$value");
                       }

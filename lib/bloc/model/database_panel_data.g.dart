@@ -160,7 +160,7 @@ class _$StringKeyDetail extends StringKeyDetail {
   @override
   final String value;
   @override
-  final String newValue;
+  final String valueChanged;
   @override
   final String key;
   @override
@@ -172,7 +172,7 @@ class _$StringKeyDetail extends StringKeyDetail {
       (new StringKeyDetailBuilder()..update(updates)).build();
 
   _$StringKeyDetail._(
-      {this.value, this.newValue, this.key, this.type, this.ttl})
+      {this.value, this.valueChanged, this.key, this.type, this.ttl})
       : super._();
 
   @override
@@ -188,7 +188,7 @@ class _$StringKeyDetail extends StringKeyDetail {
     if (identical(other, this)) return true;
     return other is StringKeyDetail &&
         value == other.value &&
-        newValue == other.newValue &&
+        valueChanged == other.valueChanged &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -197,7 +197,9 @@ class _$StringKeyDetail extends StringKeyDetail {
   @override
   int get hashCode {
     return $jf($jc(
-        $jc($jc($jc($jc(0, value.hashCode), newValue.hashCode), key.hashCode),
+        $jc(
+            $jc($jc($jc(0, value.hashCode), valueChanged.hashCode),
+                key.hashCode),
             type.hashCode),
         ttl.hashCode));
   }
@@ -206,7 +208,7 @@ class _$StringKeyDetail extends StringKeyDetail {
   String toString() {
     return (newBuiltValueToStringHelper('StringKeyDetail')
           ..add('value', value)
-          ..add('newValue', newValue)
+          ..add('valueChanged', valueChanged)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -222,9 +224,9 @@ class StringKeyDetailBuilder
   String get value => _$this._value;
   set value(String value) => _$this._value = value;
 
-  String _newValue;
-  String get newValue => _$this._newValue;
-  set newValue(String newValue) => _$this._newValue = newValue;
+  String _valueChanged;
+  String get valueChanged => _$this._valueChanged;
+  set valueChanged(String valueChanged) => _$this._valueChanged = valueChanged;
 
   String _key;
   String get key => _$this._key;
@@ -243,7 +245,7 @@ class StringKeyDetailBuilder
   StringKeyDetailBuilder get _$this {
     if (_$v != null) {
       _value = _$v.value;
-      _newValue = _$v.newValue;
+      _valueChanged = _$v.valueChanged;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -269,7 +271,11 @@ class StringKeyDetailBuilder
   _$StringKeyDetail build() {
     final _$result = _$v ??
         new _$StringKeyDetail._(
-            value: value, newValue: newValue, key: key, type: type, ttl: ttl);
+            value: value,
+            valueChanged: valueChanged,
+            key: key,
+            type: type,
+            ttl: ttl);
     replace(_$result);
     return _$result;
   }
@@ -282,6 +288,14 @@ class _$HashKeyDetail extends HashKeyDetail {
   final int scanIndex;
   @override
   final BuiltMap<String, String> scanKeyValueMap;
+  @override
+  final String selectedKey;
+  @override
+  final String selectedKeyChanged;
+  @override
+  final String selectedValue;
+  @override
+  final String selectedValueChanged;
   @override
   final String key;
   @override
@@ -296,6 +310,10 @@ class _$HashKeyDetail extends HashKeyDetail {
       {this.hlen,
       this.scanIndex,
       this.scanKeyValueMap,
+      this.selectedKey,
+      this.selectedKeyChanged,
+      this.selectedValue,
+      this.selectedValueChanged,
       this.key,
       this.type,
       this.ttl})
@@ -315,6 +333,10 @@ class _$HashKeyDetail extends HashKeyDetail {
         hlen == other.hlen &&
         scanIndex == other.scanIndex &&
         scanKeyValueMap == other.scanKeyValueMap &&
+        selectedKey == other.selectedKey &&
+        selectedKeyChanged == other.selectedKeyChanged &&
+        selectedValue == other.selectedValue &&
+        selectedValueChanged == other.selectedValueChanged &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -325,8 +347,18 @@ class _$HashKeyDetail extends HashKeyDetail {
     return $jf($jc(
         $jc(
             $jc(
-                $jc($jc($jc(0, hlen.hashCode), scanIndex.hashCode),
-                    scanKeyValueMap.hashCode),
+                $jc(
+                    $jc(
+                        $jc(
+                            $jc(
+                                $jc(
+                                    $jc($jc(0, hlen.hashCode),
+                                        scanIndex.hashCode),
+                                    scanKeyValueMap.hashCode),
+                                selectedKey.hashCode),
+                            selectedKeyChanged.hashCode),
+                        selectedValue.hashCode),
+                    selectedValueChanged.hashCode),
                 key.hashCode),
             type.hashCode),
         ttl.hashCode));
@@ -338,6 +370,10 @@ class _$HashKeyDetail extends HashKeyDetail {
           ..add('hlen', hlen)
           ..add('scanIndex', scanIndex)
           ..add('scanKeyValueMap', scanKeyValueMap)
+          ..add('selectedKey', selectedKey)
+          ..add('selectedKeyChanged', selectedKeyChanged)
+          ..add('selectedValue', selectedValue)
+          ..add('selectedValueChanged', selectedValueChanged)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -363,6 +399,25 @@ class HashKeyDetailBuilder
   set scanKeyValueMap(MapBuilder<String, String> scanKeyValueMap) =>
       _$this._scanKeyValueMap = scanKeyValueMap;
 
+  String _selectedKey;
+  String get selectedKey => _$this._selectedKey;
+  set selectedKey(String selectedKey) => _$this._selectedKey = selectedKey;
+
+  String _selectedKeyChanged;
+  String get selectedKeyChanged => _$this._selectedKeyChanged;
+  set selectedKeyChanged(String selectedKeyChanged) =>
+      _$this._selectedKeyChanged = selectedKeyChanged;
+
+  String _selectedValue;
+  String get selectedValue => _$this._selectedValue;
+  set selectedValue(String selectedValue) =>
+      _$this._selectedValue = selectedValue;
+
+  String _selectedValueChanged;
+  String get selectedValueChanged => _$this._selectedValueChanged;
+  set selectedValueChanged(String selectedValueChanged) =>
+      _$this._selectedValueChanged = selectedValueChanged;
+
   String _key;
   String get key => _$this._key;
   set key(String key) => _$this._key = key;
@@ -382,6 +437,10 @@ class HashKeyDetailBuilder
       _hlen = _$v.hlen;
       _scanIndex = _$v.scanIndex;
       _scanKeyValueMap = _$v.scanKeyValueMap?.toBuilder();
+      _selectedKey = _$v.selectedKey;
+      _selectedKeyChanged = _$v.selectedKeyChanged;
+      _selectedValue = _$v.selectedValue;
+      _selectedValueChanged = _$v.selectedValueChanged;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -412,6 +471,10 @@ class HashKeyDetailBuilder
               hlen: hlen,
               scanIndex: scanIndex,
               scanKeyValueMap: _scanKeyValueMap?.build(),
+              selectedKey: selectedKey,
+              selectedKeyChanged: selectedKeyChanged,
+              selectedValue: selectedValue,
+              selectedValueChanged: selectedValueChanged,
               key: key,
               type: type,
               ttl: ttl);
