@@ -220,7 +220,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
               ),
             ),
             _keyValuePanel(),
-            Padding(
+            StringUtil.isNotBlank(keyDetail.selectedKey) ? Padding(
               padding: const EdgeInsets.all(15.0),
               child: Row(
                 children: [
@@ -238,15 +238,22 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                       child: MaterialButton(
                         color: Colors.blue,
                         onPressed: () {
-                          // Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
-                          //   if(StringUtil.isEqual("OK", value)) {
-                          //     context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
-                          //   } else {
-                          //     BotToast.showText(text: "$value");
-                          //   }
-                          // }).catchError((e) {
-                          //   BotToast.showText(text: "$e");
-                          // });
+                          Redis.instance.execute(connection.id, panelUUID, "hset ${keyDetail.key} ${_selectedKeyEditingController.text} ${keyDetail.selectedValue}").then((value) {
+                            if(value == 1) {
+                              return Redis.instance.execute(connection.id, panelUUID, "hdel ${keyDetail.key} ${keyDetail.selectedKey}");
+                            } else {
+                              BotToast.showText(text: "HSET 失败！$value");
+                            }
+                          }).then((value) {
+                            if(value == 1) {
+                              context.read<DatabasePanelBloc>().add(HashNewSelectedKey(_selectedKeyEditingController.text));
+                              BotToast.showText(text: "已更新。");
+                            } else {
+                              BotToast.showText(text: "HDEL 失败！$value");
+                            }
+                          }).catchError((e) {
+                            BotToast.showText(text: "$e");
+                          });
                         },
                         child: Text("更新"),
                       ),
@@ -254,8 +261,8 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                   ),
                 ],
               ),
-            ),
-            Expanded(child: Padding(
+            ) : Container(),
+            StringUtil.isNotBlank(keyDetail.selectedKey) ? Expanded(child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 controller: _selectedValueEditingController,
@@ -264,8 +271,8 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                   border: OutlineInputBorder(),
                 ),
               ),
-            )),
-            Offstage(
+            )) : Container(),
+            StringUtil.isNotBlank(keyDetail.selectedKey) ? Offstage(
               offstage: StringUtil.isEqual(keyDetail.selectedValue, _selectedValueEditingController.text),
               child: Container(
                 alignment: Alignment.centerRight,
@@ -273,20 +280,21 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                 child: MaterialButton(
                   color: Colors.blue,
                   onPressed: () {
-                    // Redis.instance.execute(connection.id, panelUUID, "set ${keyDetail.key} ${_valueEditingController.text}").then((value) {
-                    //   if(StringUtil.isEqual("OK", value)) {
-                    //     context.read<DatabasePanelBloc>().add(StringNewValue(_valueEditingController.text));
-                    //   } else {
-                    //     BotToast.showText(text: "$value");
-                    //   }
-                    // }).catchError((e) {
-                    //   BotToast.showText(text: "$e");
-                    // });
+                    Redis.instance.execute(connection.id, panelUUID, "hset ${keyDetail.key} ${keyDetail.selectedKey} ${_selectedValueEditingController.text}").then((value) {
+                      if(value == 0) {
+                        context.read<DatabasePanelBloc>().add(HashNewSelectedValue(_selectedValueEditingController.text));
+                        BotToast.showText(text: "已更新。");
+                      } else {
+                        BotToast.showText(text: "$value");
+                      }
+                    }).catchError((e) {
+                      BotToast.showText(text: "$e");
+                    });
                   },
                   child: Text("更新"),
                 ),
               ),
-            ),
+            ) : Container(),
           ],
         );
       }
@@ -420,6 +428,8 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
           return previous.keyDetail != current.keyDetail;
         },
       builder: (context, state) {
+        var panelUUID = state.panelUUID;
+        var connection = state.connection;
         HashKeyDetail keyDetail = state.keyDetail;
         return Container(
           width: 200,
@@ -431,8 +441,19 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                     children: [
                       MaterialButton(
                         color: Colors.blueAccent.withAlpha(128),
-                        onPressed: () {
-                          BotToast.showText(text: "刷新");
+                        onPressed: () async {
+                          int hlen = await Redis.instance.execute(connection.id, panelUUID, "hlen ${keyDetail.key}");
+                          var scanResult = await Redis.instance.execute(connection.id, panelUUID, "hscan ${keyDetail.key} 0 count 100");
+                          int scanIndex = int.tryParse(scanResult[0]);
+                          List<String> keyValueList = List.of(scanResult[1]).map((e) => "$e").toList();
+                          Map<String, String> scanKeyValueMap = {};
+                          keyValueList.asMap().forEach((index, element) {
+                            if(index % 2 != 0) {
+                              scanKeyValueMap["${keyValueList[index-1]}"] = "$element";
+                            }
+                          });
+                          context.read<DatabasePanelBloc>().add(HashRefresh(hlen, scanIndex, scanKeyValueMap));
+                          BotToast.showText(text: "已刷新。");
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -468,7 +489,41 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                       MaterialButton(
                         color: Colors.blueAccent.withAlpha(128),
                         onPressed: () {
-                          BotToast.showText(text: "删除行");
+                          if(StringUtil.isNotBlank(keyDetail.selectedKey)) {
+                            NDialog(
+                              dialogStyle: DialogStyle(titleDivider: true),
+                              title: Text("删除 KEY"),
+                              content: SizedBox(
+                                width: MediaQuery.of(context).size.width/3,
+                                child: Text(
+                                    "确定删除【${keyDetail.selectedKey}】？"
+                                ),
+                              ),
+                              actions: <Widget>[
+                                FlatButton(child: Text("取消", style: TextStyle(color: Colors.white),),onPressed: () {
+                                  Navigator.of(context).pop(false);
+                                }),
+                                FlatButton(child: Text("删除", style: TextStyle(color: Colors.red),),onPressed: () {
+                                  Navigator.of(context).pop(true);
+                                }),
+                              ],
+                            ).show(context).then((value) {
+                              if(value??false) {
+                                Redis.instance.execute(connection.id, panelUUID, "hdel ${keyDetail.key} ${keyDetail.selectedKey}").then((value) {
+                                  if(value == 1) {
+                                    context.read<DatabasePanelBloc>().add(HashSelectedKeyDeleted(keyDetail.selectedKey));
+                                    BotToast.showText(text: "已删除。");
+                                  } else {
+                                    BotToast.showText(text: "删除失败！$value");
+                                  }
+                                }).catchError((e) {
+                                  BotToast.showText(text: "$e");
+                                });
+                              }
+                            });
+                          } else {
+                            BotToast.showText(text: "未选中 KEY！");
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),

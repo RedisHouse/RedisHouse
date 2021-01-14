@@ -94,6 +94,23 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is HashRefresh) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b
+            ..hlen=event.hlen
+            ..scanIndex=event.scanIndex
+            ..scanKeyValueMap=BuiltMap<String, String>.from(event.scanKeyValueMap).toBuilder()
+            ..selectedKey=""
+            ..selectedKeyChanged=""
+            ..selectedValue=""
+            ..selectedValueChanged=""
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
     } else if(event is HashSelectedKeyValue) {
       yield state.rebuild((b) {
         var keyDetail = b.keyDetail;
@@ -115,12 +132,31 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is HashSelectedKeyDeleted) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is HashKeyDetail) {
+          HashKeyDetail hashKeyDetail = keyDetail;
+          keyDetail = hashKeyDetail.rebuild((b) => b
+              ..selectedKey=""
+              ..selectedKeyChanged=""
+              ..selectedValue=""
+              ..selectedValueChanged=""
+              ..scanKeyValueMap.remove(event.key)
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
     } else if(event is HashNewSelectedKey) {
       yield state.rebuild((b) {
         var keyDetail = b.keyDetail;
         if(keyDetail is HashKeyDetail) {
           HashKeyDetail hashKeyDetail = keyDetail;
-          keyDetail = hashKeyDetail.rebuild((b) => b.selectedKey=event.newKey);
+          keyDetail = hashKeyDetail.rebuild((b) => b
+              ..selectedKey=event.newKey
+              ..scanKeyValueMap.remove(hashKeyDetail.selectedKey)
+              ..scanKeyValueMap.putIfAbsent(event.newKey, () => hashKeyDetail.selectedValue)
+          );
           b.keyDetail = keyDetail;
         }
       });
@@ -138,7 +174,10 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         var keyDetail = b.keyDetail;
         if(keyDetail is HashKeyDetail) {
           HashKeyDetail hashKeyDetail = keyDetail;
-          keyDetail = hashKeyDetail.rebuild((b) => b.selectedValue=event.newValue);
+          keyDetail = hashKeyDetail.rebuild((b) {
+            b.selectedValue=event.newValue;
+            b.scanKeyValueMap.updateValue(b.selectedKey, (s) => event.newValue);
+          });
           b.keyDetail = keyDetail;
         }
       });
@@ -192,6 +231,13 @@ class StringNewValue extends DatabasePanelEvent {
   StringNewValue(this.newValue);
 }
 
+class HashRefresh extends DatabasePanelEvent {
+  int hlen;
+  int scanIndex;
+  Map<String, String> scanKeyValueMap;
+  HashRefresh(this.hlen, this.scanIndex, this.scanKeyValueMap);
+}
+
 class HashSelectedKeyValue extends DatabasePanelEvent {
   String selectedKey;
   String selectedValue;
@@ -201,6 +247,11 @@ class HashSelectedKeyValue extends DatabasePanelEvent {
 class HashSelectedKeyChanged extends DatabasePanelEvent {
   String key;
   HashSelectedKeyChanged(this.key);
+}
+
+class HashSelectedKeyDeleted extends DatabasePanelEvent {
+  String key;
+  HashSelectedKeyDeleted(this.key);
 }
 
 class HashNewSelectedKey extends DatabasePanelEvent {
