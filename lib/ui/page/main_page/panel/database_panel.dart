@@ -336,6 +336,14 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         );
       } else if(StringUtil.isEqual("list", keyType)) {
         keyDetail = ListKeyDetail((b)=>b..key=key..type=keyType);
+        int llen = await Redis.instance.execute(connection.id, panelInfo.uuid, "llen $key");
+        List lrangeList = await Redis.instance.execute(connection.id, panelInfo.uuid, "lrange $key 0 $scanCount");
+        List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
+        keyDetail = keyDetail.rebuild((b)=>b
+          ..llen = llen
+          ..pageIndex = 1
+          ..rangeList = valueList.toBuiltList().toBuilder()
+        );
       } else if(StringUtil.isEqual("set", keyType)) {
         keyDetail = SetKeyDetail((b)=>b..key=key..type=keyType);
       } else if(StringUtil.isEqual("zset", keyType)) {

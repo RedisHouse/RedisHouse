@@ -216,6 +216,7 @@ class _StringDetailPanelState extends State<StringDetailPanel> with AfterInitMix
                 maxLines: 200,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
+                  labelText: "VALUE"
                 ),
               ),
             )),

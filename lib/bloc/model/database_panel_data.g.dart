@@ -496,6 +496,18 @@ class HashKeyDetailBuilder
 
 class _$ListKeyDetail extends ListKeyDetail {
   @override
+  final int llen;
+  @override
+  final int pageIndex;
+  @override
+  final BuiltList<String> rangeList;
+  @override
+  final int selectedIndex;
+  @override
+  final String selectedValue;
+  @override
+  final String selectedValueChanged;
+  @override
   final String key;
   @override
   final String type;
@@ -505,7 +517,17 @@ class _$ListKeyDetail extends ListKeyDetail {
   factory _$ListKeyDetail([void Function(ListKeyDetailBuilder) updates]) =>
       (new ListKeyDetailBuilder()..update(updates)).build();
 
-  _$ListKeyDetail._({this.key, this.type, this.ttl}) : super._();
+  _$ListKeyDetail._(
+      {this.llen,
+      this.pageIndex,
+      this.rangeList,
+      this.selectedIndex,
+      this.selectedValue,
+      this.selectedValueChanged,
+      this.key,
+      this.type,
+      this.ttl})
+      : super._();
 
   @override
   ListKeyDetail rebuild(void Function(ListKeyDetailBuilder) updates) =>
@@ -518,6 +540,12 @@ class _$ListKeyDetail extends ListKeyDetail {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is ListKeyDetail &&
+        llen == other.llen &&
+        pageIndex == other.pageIndex &&
+        rangeList == other.rangeList &&
+        selectedIndex == other.selectedIndex &&
+        selectedValue == other.selectedValue &&
+        selectedValueChanged == other.selectedValueChanged &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -525,12 +553,31 @@ class _$ListKeyDetail extends ListKeyDetail {
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc(
+                $jc(
+                    $jc(
+                        $jc(
+                            $jc($jc($jc(0, llen.hashCode), pageIndex.hashCode),
+                                rangeList.hashCode),
+                            selectedIndex.hashCode),
+                        selectedValue.hashCode),
+                    selectedValueChanged.hashCode),
+                key.hashCode),
+            type.hashCode),
+        ttl.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ListKeyDetail')
+          ..add('llen', llen)
+          ..add('pageIndex', pageIndex)
+          ..add('rangeList', rangeList)
+          ..add('selectedIndex', selectedIndex)
+          ..add('selectedValue', selectedValue)
+          ..add('selectedValueChanged', selectedValueChanged)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -541,6 +588,33 @@ class _$ListKeyDetail extends ListKeyDetail {
 class ListKeyDetailBuilder
     implements Builder<ListKeyDetail, ListKeyDetailBuilder> {
   _$ListKeyDetail _$v;
+
+  int _llen;
+  int get llen => _$this._llen;
+  set llen(int llen) => _$this._llen = llen;
+
+  int _pageIndex;
+  int get pageIndex => _$this._pageIndex;
+  set pageIndex(int pageIndex) => _$this._pageIndex = pageIndex;
+
+  ListBuilder<String> _rangeList;
+  ListBuilder<String> get rangeList =>
+      _$this._rangeList ??= new ListBuilder<String>();
+  set rangeList(ListBuilder<String> rangeList) => _$this._rangeList = rangeList;
+
+  int _selectedIndex;
+  int get selectedIndex => _$this._selectedIndex;
+  set selectedIndex(int selectedIndex) => _$this._selectedIndex = selectedIndex;
+
+  String _selectedValue;
+  String get selectedValue => _$this._selectedValue;
+  set selectedValue(String selectedValue) =>
+      _$this._selectedValue = selectedValue;
+
+  String _selectedValueChanged;
+  String get selectedValueChanged => _$this._selectedValueChanged;
+  set selectedValueChanged(String selectedValueChanged) =>
+      _$this._selectedValueChanged = selectedValueChanged;
 
   String _key;
   String get key => _$this._key;
@@ -558,6 +632,12 @@ class ListKeyDetailBuilder
 
   ListKeyDetailBuilder get _$this {
     if (_$v != null) {
+      _llen = _$v.llen;
+      _pageIndex = _$v.pageIndex;
+      _rangeList = _$v.rangeList?.toBuilder();
+      _selectedIndex = _$v.selectedIndex;
+      _selectedValue = _$v.selectedValue;
+      _selectedValueChanged = _$v.selectedValueChanged;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -581,8 +661,30 @@ class ListKeyDetailBuilder
 
   @override
   _$ListKeyDetail build() {
-    final _$result =
-        _$v ?? new _$ListKeyDetail._(key: key, type: type, ttl: ttl);
+    _$ListKeyDetail _$result;
+    try {
+      _$result = _$v ??
+          new _$ListKeyDetail._(
+              llen: llen,
+              pageIndex: pageIndex,
+              rangeList: _rangeList?.build(),
+              selectedIndex: selectedIndex,
+              selectedValue: selectedValue,
+              selectedValueChanged: selectedValueChanged,
+              key: key,
+              type: type,
+              ttl: ttl);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'rangeList';
+        _rangeList?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'ListKeyDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

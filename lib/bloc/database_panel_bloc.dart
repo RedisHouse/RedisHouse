@@ -193,7 +193,9 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         var keyDetail = b.keyDetail;
         if(keyDetail is HashKeyDetail) {
           HashKeyDetail hashKeyDetail = keyDetail;
-          keyDetail = hashKeyDetail.rebuild((b) => b.selectedValueChanged=event.value);
+          keyDetail = hashKeyDetail.rebuild((b) => b
+              ..selectedValueChanged=event.value
+          );
           b.keyDetail = keyDetail;
         }
       });
@@ -205,6 +207,59 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           keyDetail = hashKeyDetail.rebuild((b) {
             b.selectedValue=event.newValue;
             b.scanKeyValueMap.updateValue(b.selectedKey, (s) => event.newValue);
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ListRefresh) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) {
+            b.llen=event.llen;
+            b.pageIndex=event.pageIndex;
+            b.rangeList=event.valueList.toBuiltList().toBuilder();
+            b.selectedIndex=-1;
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ListSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) {
+            b.selectedIndex=event.selectedIndex;
+            b.selectedValue=event.value;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ListSelectedValueChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) {
+            b.selectedValueChanged=event.value;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ListSelectedValueDeleted) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) {
+            b.llen=b.llen-1;
+            b.selectedIndex=-1;
+            b.selectedValue="";
+            b.rangeList.remove(event.value);
           });
           b.keyDetail = keyDetail;
         }
@@ -308,6 +363,27 @@ class HashNewSelectedValue extends DatabasePanelEvent {
   HashNewSelectedValue(this.newValue);
 }
 
+class ListRefresh extends DatabasePanelEvent {
+  int llen;
+  int pageIndex;
+  List<String> valueList;
+  ListRefresh(this.llen, this.pageIndex, this.valueList);
+}
 
+class ListSelectedValue extends DatabasePanelEvent {
+  int selectedIndex;
+  String value;
+  ListSelectedValue(this.selectedIndex, this.value);
+}
+
+class ListSelectedValueChanged extends DatabasePanelEvent {
+  String value;
+  ListSelectedValueChanged(this.value);
+}
+
+class ListSelectedValueDeleted extends DatabasePanelEvent {
+  String value;
+  ListSelectedValueDeleted(this.value);
+}
 
 

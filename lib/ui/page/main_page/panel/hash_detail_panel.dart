@@ -88,11 +88,11 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
 
     keyDetailStreamSubscription?.cancel();
     _keyEditingController?.dispose();
-    _selectedValueEditingController?.dispose();
     _renameTextEditingController?.dispose();
     _ttlTextEditingController?.dispose();
     _scanFilterTextEditingController?.dispose();
     _selectedKeyEditingController?.dispose();
+    _selectedValueEditingController?.dispose();
   }
 
   scanKeyValueMap() {
@@ -264,6 +264,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(horizontal: 10),
                       border: OutlineInputBorder(),
+                      labelText: "KEY",
                     ),
                   )),
                   Offstage(
@@ -277,14 +278,14 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                             if(value == 1) {
                               return Redis.instance.execute(connection.id, panelUUID, "hdel ${keyDetail.key} ${keyDetail.selectedKey}");
                             } else {
-                              BotToast.showText(text: "HSET 失败！$value");
+                              throw "HSET 失败！$value";
                             }
                           }).then((value) {
                             if(value == 1) {
                               context.read<DatabasePanelBloc>().add(HashNewSelectedKey(_selectedKeyEditingController.text));
                               BotToast.showText(text: "已更新。");
                             } else {
-                              BotToast.showText(text: "HDEL 失败！$value");
+                              throw "HDEL 失败！$value";
                             }
                           }).catchError((e) {
                             BotToast.showText(text: "$e");
@@ -304,6 +305,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                 maxLines: 200,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
+                  labelText: "VALUE",
                 ),
               ),
             )) : Container(),
@@ -477,7 +479,7 @@ class _HashDetailPanelState extends State<HashDetailPanel> with AfterInitMixin<H
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text("Total: ${keyDetail.hlen} / Page: ${keyDetail.scanKeyValueMap.length}"),
+                        child: Text("Total: ${keyDetail.hlen} / Page: ${keyDetail.scanKeyValueMap?.length??0}"),
                       ),
                       MaterialButton(
                         color: Colors.blueAccent.withAlpha(128),

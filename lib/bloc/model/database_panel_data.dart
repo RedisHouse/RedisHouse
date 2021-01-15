@@ -82,6 +82,23 @@ abstract class HashKeyDetail implements BaseKeyDetail, Built<HashKeyDetail, Hash
 
 abstract class ListKeyDetail implements BaseKeyDetail, Built<ListKeyDetail, ListKeyDetailBuilder>  {
 
+  @nullable
+  int get llen;
+
+  @nullable
+  int get pageIndex;
+
+  @nullable
+  BuiltList<String> get rangeList;
+
+  @nullable
+  int get selectedIndex;
+
+  @nullable
+  String get selectedValue;
+
+  @nullable
+  String get selectedValueChanged;
 
   ListKeyDetail._();
   factory ListKeyDetail([updates(ListKeyDetailBuilder b)]) = _$ListKeyDetail;
