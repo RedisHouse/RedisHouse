@@ -11,6 +11,7 @@ import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/ui/page/main_page/dialog/new_value_dialog.dart';
 import 'package:redis_house/util/string_util.dart';
 
 class ListDetailPanel extends StatefulWidget {
@@ -244,12 +245,19 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                 child: MaterialButton(
                   color: Colors.blue,
                   onPressed: () {
-                    Redis.instance.execute(connection.id, panelUUID, "hset ${keyDetail.key} ${keyDetail.selectedValue} ${_selectedValueEditingController.text}").then((value) {
-                      if(value == 0) {
-                        context.read<DatabasePanelBloc>().add(HashNewSelectedValue(_selectedValueEditingController.text));
+                    Redis.instance.execute(connection.id, panelUUID, "lrange $key ${getPosition(keyDetail.selectedIndex)} ${getPosition(keyDetail.selectedIndex)}").then((value) {
+                      String currentValue = value[0];
+                      if(StringUtil.isEqual(keyDetail.selectedValue, currentValue)) {
+                        return Redis.instance.execute(connection.id, panelUUID, "lset $key ${getPosition(keyDetail.selectedIndex)} ${_selectedValueEditingController.text}");
+                      } else {
+                        throw  "数据已变更，请刷新！";
+                      }
+                    }).then((value) {
+                      if(StringUtil.isEqual("OK", value)) {
+                        context.read<DatabasePanelBloc>().add(ListNewSelectedValue(_selectedValueEditingController.text));
                         BotToast.showText(text: "已更新。");
                       } else {
-                        BotToast.showText(text: "$value");
+                        throw "更新失败！$value";
                       }
                     }).catchError((e) {
                       BotToast.showText(text: "$e");
@@ -414,26 +422,22 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                         MaterialButton(
                           color: Colors.blueAccent.withAlpha(128),
                           onPressed: () async {
-                            // List result = await showHashValueDialog(
-                            //   context,
-                            //   connection.id,
-                            //   panelUUID,
-                            //   keyDetail.key,
-                            //   tmpKey: tmpKey,
-                            //   tmpValue: tmpValue,
-                            // );
-                            // if(result != null && result.isNotEmpty) {
-                            //   bool saveResult = result[0];
-                            //   tmpKey = result[1];
-                            //   tmpValue = result[2];
-                            //   if(saveResult??false) {
-                            //     context.read<DatabasePanelBloc>().add(HashNewKeyValue(tmpKey, tmpValue));
-                            //     _selectedKeyEditingController.text = tmpKey;
-                            //     _selectedValueEditingController.text = tmpValue;
-                            //     tmpKey = "";
-                            //     tmpValue = "";
-                            //   }
-                            // }
+                            List result = await showListValueDialog(
+                              context,
+                              connection.id,
+                              panelUUID,
+                              keyDetail.key,
+                              tmpValue: tmpValue,
+                            );
+                            if(result != null && result.isNotEmpty) {
+                              bool saveResult = result[0];
+                              tmpValue = result[1];
+                              if(saveResult??false) {
+                                context.read<DatabasePanelBloc>().add(ListNewValue(tmpValue));
+                                _selectedValueEditingController.text = tmpValue;
+                                tmpValue = "";
+                              }
+                            }
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),

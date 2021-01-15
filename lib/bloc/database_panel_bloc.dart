@@ -264,6 +264,34 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is ListNewSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) {
+            b.selectedValue=event.value;
+            b.rangeList.removeAt(b.selectedIndex);
+            b.rangeList.insert(b.selectedIndex, event.value);
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ListNewValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ListKeyDetail) {
+          ListKeyDetail listKeyDetail = keyDetail;
+          keyDetail = listKeyDetail.rebuild((b) => b
+            ..rangeList.insert(0, event.value)
+            ..selectedIndex=0
+            ..selectedValue=event.value
+            ..selectedValueChanged=""
+            ..llen=b.llen+1
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
     }
   }
 
@@ -385,5 +413,12 @@ class ListSelectedValueDeleted extends DatabasePanelEvent {
   String value;
   ListSelectedValueDeleted(this.value);
 }
+class ListNewSelectedValue extends DatabasePanelEvent {
+  String value;
+  ListNewSelectedValue(this.value);
+}
 
-
+class ListNewValue extends DatabasePanelEvent {
+  String value;
+  ListNewValue(this.value);
+}
