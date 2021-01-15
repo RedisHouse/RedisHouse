@@ -1,4 +1,6 @@
 
+import 'dart:async';
+
 import 'package:after_init/after_init.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:built_collection/built_collection.dart';
@@ -33,31 +35,33 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   NewConnectionData connection;
   ConnectionDetail connectionDetail;
   PanelInfo panelInfo;
-  int dbSize = 0;
-  String dbIndex = "0";
+  DatabasePanelData databasePanelData;
 
   int scanCount = 20;
   int navScanIndex = 0;
   List<int> navScanIndexList = List.of([0], growable: true);
 
-
+  StreamSubscription streamSubscription;
   @override
   void didInitState() {
-    var mainPageBloc = context.read<MainPageBloc>();
-    var mainPageData = mainPageBloc.state;
+    streamSubscription = context.read<DatabasePanelBloc>().listen((data) {
+      databasePanelData = data;
+    });
+    databasePanelData = context.read<DatabasePanelBloc>().state;
+    var mainPageData = context.read<MainPageBloc>().state;
     panelInfo = mainPageData.panelList.where((item) => StringUtil.isEqual(widget.panelUUID, item.uuid)).first;
     connection = panelInfo.connection;
     connectionDetail = mainPageData.connectedRedisMap[connection.id];
-    dbIndex = StringUtil.isNotBlank(panelInfo.dbIndex) ? panelInfo.dbIndex : "0";
     Redis.instance.createSession(connection.id, panelInfo.uuid).then((value) {
       BotToast.showText(text: "会话创建完成。");
-      selectAndSize();
+      selectAndSize(databasePanelData.dbIndex);
     });
   }
 
   @override
   void dispose() {
     super.dispose();
+    streamSubscription?.cancel();
     Redis.instance.closeSession(connection.id, widget.panelUUID).then((value) {
       Log.i("Session 已关闭: [${connection.id}]-[${widget.panelUUID}]");
     }).catchError((e) {
@@ -65,14 +69,12 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
     });
   }
 
-  selectAndSize() {
+  selectAndSize(String dbIndex) {
     Redis.instance.execute(connection.id, panelInfo.uuid, "select $dbIndex").then((value) {
       return Redis.instance.execute(connection.id, panelInfo.uuid, "dbsize");
     }).then((value) {
-      setState(() {
-        dbSize = value;
-      });
-      Log.d("dbSize：$value");
+      context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbSize: value));
+      Log.d("DB${databasePanelData.dbIndex}-dbSize：$value");
       loadKeyList();
     }).catchError((e) {
       BotToast.showText(text: "$e");
@@ -89,9 +91,6 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
       }
       List<String> scanKeyList = List.of(value[1]).map((e) => "$e").toList();
       context.read<DatabasePanelBloc>().add(ScanKeyListChanged(scanKeyList));
-      setState(() {
-
-      });
     }).catchError((e) {
       BotToast.showText(text: "$e");
     });
@@ -109,10 +108,10 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         children: <Widget>[
           Flexible(
             child: Text(
-              "db$dbIndex",
+              "db${databasePanelData.dbIndex}",
               style: TextStyle(color: Colors.white),
               overflow: TextOverflow.ellipsis,
-            ),
+            )
           ),
           SizedBox(
               width: 12,
@@ -139,62 +138,69 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
             children: [
               Row(
                 children: [
-                  MenuButton(
-                    child: button,// Widget displayed as the button
-                    items: dbList(connectionDetail.dbNum),// List of your items
-                    topDivider: true,
-                    popupHeight: 435, // This popupHeight is optional. The default height is the size of items
-                    scrollPhysics: ClampingScrollPhysics(), // Change the physics of opened menu (example: you can remove or add scroll to menu)
-                    itemBuilder: (value) => Container(
-                        width: 75,
-                        height: 25,
-                        color: Colors.black,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text("db$value")
-                    ),// Widget displayed for each item
-                    toggledChild: Container(
-                      color: Colors.black12,
-                      child: button,// Widget displayed as the button,
-                    ),
-                    divider: Container(
-                      height: 0.5,
-                      color: Colors.grey.withAlpha(128),
-                    ),
-                    onItemSelected: (value) {
-                      if(StringUtil.isNotEqual(value, dbIndex)) {
-                        setState(() {
-                          dbIndex = value;
-                          dbSize = 0;
-                          navScanIndex = 0;
-                          navScanIndexList = List.of([0], growable: true);
+                  BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+                    buildWhen: (previous, current) => previous.dbIndex != current.dbIndex,
+                    builder: (context, state) {
+                      return MenuButton(
+                        child: button,// Widget displayed as the button
+                        items: dbList(connectionDetail.dbNum),// List of your items
+                        topDivider: true,
+                        popupHeight: 435, // This popupHeight is optional. The default height is the size of items
+                        scrollPhysics: ClampingScrollPhysics(), // Change the physics of opened menu (example: you can remove or add scroll to menu)
+                        itemBuilder: (value) => Container(
+                            width: 75,
+                            height: 25,
+                            color: Colors.black,
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text("db$value")
+                        ),// Widget displayed for each item
+                        toggledChild: Container(
+                          color: Colors.black12,
+                          child: button,// Widget displayed as the button,
+                        ),
+                        divider: Container(
+                          height: 0.5,
+                          color: Colors.grey.withAlpha(128),
+                        ),
+                        onItemSelected: (value) {
+                          if(StringUtil.isNotEqual(value, databasePanelData.dbIndex)) {
+                            context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbIndex: value, dbSize: 0));
+                            context.read<DatabasePanelBloc>().add(ScanKeyListClear());
+                            setState(() {
+                              navScanIndex = 0;
+                              navScanIndexList = List.of([0], growable: true);
+                            });
+                            selectAndSize(value);
+                          }
+                        },
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.withAlpha(128)),
+                          borderRadius: const BorderRadius.all(Radius.circular(3.0)),
+                          color: Colors.black12,
+                        ),
+                        onMenuButtonToggle: (toggle) {
 
-                          context.read<DatabasePanelBloc>().add(ScanKeyListClear());
-                        });
-                        selectAndSize();
-                      }
-                    },
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.withAlpha(128)),
-                      borderRadius: const BorderRadius.all(Radius.circular(3.0)),
-                      color: Colors.black12,
-                    ),
-                    onMenuButtonToggle: (toggle) {
-
-                    },
+                        },
+                      );
+                    }
                   ),
                   SizedBox(width: 5,),
-                  Text("Keys: $dbSize"),
+                  BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+                    buildWhen: (previous, current) => previous.dbSize != current.dbSize,
+                    builder: (context, state) {
+                      return Text("Keys: ${state.dbSize??0}");
+                    }
+                  ),
                   Expanded(child: Container()),
                   InkWell(
                     onTap: () async {
+                      context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                       setState(() {
-                        dbSize = 0;
                         navScanIndex = 0;
                         navScanIndexList = List.of([0], growable: true);
-                        context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                       });
-                      selectAndSize();
+                      selectAndSize(databasePanelData.dbIndex);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(5),

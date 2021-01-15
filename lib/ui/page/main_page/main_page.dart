@@ -225,6 +225,7 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                   create: (context) => DatabasePanelBloc(context, DatabasePanelData((b)=>b
                     ..connection=element.connection.toBuilder()
                     ..panelUUID=element.uuid
+                    ..dbIndex=element.dbIndex
                   )),
                   child: DatabasePanel(element.uuid),
                 );

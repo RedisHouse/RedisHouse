@@ -12,6 +12,10 @@ class _$DatabasePanelData extends DatabasePanelData {
   @override
   final NewConnectionData connection;
   @override
+  final String dbIndex;
+  @override
+  final int dbSize;
+  @override
   final BaseKeyDetail keyDetail;
   @override
   final String selectedKey;
@@ -25,6 +29,8 @@ class _$DatabasePanelData extends DatabasePanelData {
   _$DatabasePanelData._(
       {this.panelUUID,
       this.connection,
+      this.dbIndex,
+      this.dbSize,
       this.keyDetail,
       this.selectedKey,
       this.scanKeyList})
@@ -44,6 +50,8 @@ class _$DatabasePanelData extends DatabasePanelData {
     return other is DatabasePanelData &&
         panelUUID == other.panelUUID &&
         connection == other.connection &&
+        dbIndex == other.dbIndex &&
+        dbSize == other.dbSize &&
         keyDetail == other.keyDetail &&
         selectedKey == other.selectedKey &&
         scanKeyList == other.scanKeyList;
@@ -53,7 +61,11 @@ class _$DatabasePanelData extends DatabasePanelData {
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc($jc($jc(0, panelUUID.hashCode), connection.hashCode),
+            $jc(
+                $jc(
+                    $jc($jc($jc(0, panelUUID.hashCode), connection.hashCode),
+                        dbIndex.hashCode),
+                    dbSize.hashCode),
                 keyDetail.hashCode),
             selectedKey.hashCode),
         scanKeyList.hashCode));
@@ -64,6 +76,8 @@ class _$DatabasePanelData extends DatabasePanelData {
     return (newBuiltValueToStringHelper('DatabasePanelData')
           ..add('panelUUID', panelUUID)
           ..add('connection', connection)
+          ..add('dbIndex', dbIndex)
+          ..add('dbSize', dbSize)
           ..add('keyDetail', keyDetail)
           ..add('selectedKey', selectedKey)
           ..add('scanKeyList', scanKeyList))
@@ -85,6 +99,14 @@ class DatabasePanelDataBuilder
   set connection(NewConnectionDataBuilder connection) =>
       _$this._connection = connection;
 
+  String _dbIndex;
+  String get dbIndex => _$this._dbIndex;
+  set dbIndex(String dbIndex) => _$this._dbIndex = dbIndex;
+
+  int _dbSize;
+  int get dbSize => _$this._dbSize;
+  set dbSize(int dbSize) => _$this._dbSize = dbSize;
+
   BaseKeyDetail _keyDetail;
   BaseKeyDetail get keyDetail => _$this._keyDetail;
   set keyDetail(BaseKeyDetail keyDetail) => _$this._keyDetail = keyDetail;
@@ -105,6 +127,8 @@ class DatabasePanelDataBuilder
     if (_$v != null) {
       _panelUUID = _$v.panelUUID;
       _connection = _$v.connection?.toBuilder();
+      _dbIndex = _$v.dbIndex;
+      _dbSize = _$v.dbSize;
       _keyDetail = _$v.keyDetail;
       _selectedKey = _$v.selectedKey;
       _scanKeyList = _$v.scanKeyList?.toBuilder();
@@ -134,6 +158,8 @@ class DatabasePanelDataBuilder
           new _$DatabasePanelData._(
               panelUUID: panelUUID,
               connection: _connection?.build(),
+              dbIndex: dbIndex,
+              dbSize: dbSize,
               keyDetail: keyDetail,
               selectedKey: selectedKey,
               scanKeyList: _scanKeyList?.build());

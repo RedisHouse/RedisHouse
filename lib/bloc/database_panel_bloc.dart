@@ -12,7 +12,16 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
 
   @override
   Stream<DatabasePanelData> mapEventToState(event) async* {
-    if(event is SelectedKey) {
+    if(event is DBORDBSizeChanged) {
+      yield state.rebuild((b) {
+        if(StringUtil.isNotBlank(event.dbIndex)) {
+          b.dbIndex = event.dbIndex;
+        }
+        if(event.dbSize != null) {
+          b.dbSize = event.dbSize;
+        }
+      });
+    } else if(event is SelectedKey) {
       yield state.rebuild((b) => b.selectedKey=event.selectedKey);
     } else if(event is ScanKeyListChanged) {
       yield state.rebuild((b) => b.scanKeyList=event.scanKeyList.toBuiltList().toBuilder());
@@ -73,6 +82,7 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         if(StringUtil.isEqual(state.selectedKey, event.key)) {
           b.selectedKey = "";
         }
+        b.dbSize=b.dbSize-1;
         b.scanKeyList.remove(event.key);
         b.keyDetail=null;
       });
@@ -298,6 +308,12 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
 }
 
 abstract class DatabasePanelEvent {}
+
+class DBORDBSizeChanged extends DatabasePanelEvent {
+  String dbIndex;
+  int dbSize;
+  DBORDBSizeChanged({this.dbIndex, this.dbSize});
+}
 
 class KeyDetailChanged extends DatabasePanelEvent {
   BaseKeyDetail keyDetail;

@@ -13,6 +13,12 @@ abstract class DatabasePanelData implements Built<DatabasePanelData, DatabasePan
   NewConnectionData get connection;
 
   @nullable
+  String get dbIndex;
+
+  @nullable
+  int get dbSize;
+
+  @nullable
   BaseKeyDetail get keyDetail;
 
   @nullable
