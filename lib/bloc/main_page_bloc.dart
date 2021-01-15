@@ -80,6 +80,15 @@ class MainPageBloc extends BaseBloc<MainPageEvent, MainPageData> {
       } finally {
         Redis.instance.closeSession(event.connectionId, sessionID);
       }
+    } else if(event is ConnectionDBSizeUpdateEvent) {
+      yield state.rebuild((b) {
+        MapBuilder<String, ConnectionDetail> connectedRedisMap = b.connectedRedisMap;
+        var detail = connectedRedisMap[event.connectionId];
+        connectedRedisMap[event.connectionId] = detail.rebuild((b) {
+          b.dbKeyNumMap["db${event.dbIndex}"] = event.dbSize;
+        });
+        b.connectedRedisMap = connectedRedisMap;
+      });
     } else if(event is ConnectionCloseEvent) {
       yield state.rebuild((b) {
         b.connectedRedisMap.remove(event.connectionId);
@@ -165,6 +174,13 @@ class ConnectionDBSizeEvent extends MainPageEvent {
   String connectionId;
   int dbIndex;
   ConnectionDBSizeEvent(this.connectionId, this.dbIndex);
+}
+
+class ConnectionDBSizeUpdateEvent extends MainPageEvent {
+  String connectionId;
+  String dbIndex;
+  int dbSize;
+  ConnectionDBSizeUpdateEvent(this.connectionId, this.dbIndex, this.dbSize);
 }
 
 class ConnectionCloseEvent extends MainPageEvent {

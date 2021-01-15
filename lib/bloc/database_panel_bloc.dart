@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:redis_house/bloc/main_page_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/base/base_bloc.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:redis_house/util/string_util.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> {
 
@@ -19,6 +20,8 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         }
         if(event.dbSize != null) {
           b.dbSize = event.dbSize;
+          // 通知 MainPage 更新某个 DB 的 DBSize
+          context.read<MainPageBloc>().add(ConnectionDBSizeUpdateEvent(state.connection.id, state.dbIndex, event.dbSize));
         }
       });
     } else if(event is SelectedKey) {
@@ -86,6 +89,8 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         b.scanKeyList.remove(event.key);
         b.keyDetail=null;
       });
+      // 通知 MainPage 更新某个 DB 的 DBSize
+      context.read<MainPageBloc>().add(ConnectionDBSizeUpdateEvent(state.connection.id, state.dbIndex, state.dbSize));
     } else if(event is StringValueChanged) {
       yield state.rebuild((b) {
         var keyDetail = b.keyDetail;

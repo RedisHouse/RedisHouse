@@ -165,7 +165,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                         ),
                         onItemSelected: (value) {
                           if(StringUtil.isNotEqual(value, databasePanelData.dbIndex)) {
-                            context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbIndex: value, dbSize: 0));
+                            context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbIndex: value));
                             context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                             setState(() {
                               navScanIndex = 0;
