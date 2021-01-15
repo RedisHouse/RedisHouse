@@ -1,5 +1,6 @@
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:built_collection/built_collection.dart';
 import 'package:extended_tabs/extended_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -226,6 +227,8 @@ class _MainPageState extends BaseStatefulState<MainPage> with TickerProviderStat
                     ..connection=element.connection.toBuilder()
                     ..panelUUID=element.uuid
                     ..dbIndex=element.dbIndex
+                    ..navScanIndex=0
+                    ..navScanIndexList=BuiltList<int>([0]).toBuilder()
                   )),
                   child: DatabasePanel(element.uuid),
                 );

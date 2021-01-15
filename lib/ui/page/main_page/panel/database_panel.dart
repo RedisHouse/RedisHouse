@@ -38,8 +38,6 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
   DatabasePanelData databasePanelData;
 
   int scanCount = 20;
-  int navScanIndex = 0;
-  List<int> navScanIndexList = List.of([0], growable: true);
 
   StreamSubscription streamSubscription;
   @override
@@ -75,19 +73,19 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
     }).then((value) {
       context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbSize: value));
       Log.d("DB${databasePanelData.dbIndex}-dbSize：$value");
-      loadKeyList();
+      loadKeyList(0);
     }).catchError((e) {
       BotToast.showText(text: "$e");
     });
   }
 
-  loadKeyList() {
-    var scanIndex = navScanIndexList[navScanIndex];
-    Log.d("scanIndex: $scanIndex, $navScanIndexList");
+  loadKeyList(int navScanIndex) {
+    var scanIndex = databasePanelData.navScanIndexList[navScanIndex];
+    Log.d("scanIndex: $scanIndex, ${databasePanelData.navScanIndexList}");
     Redis.instance.execute(connection.id, panelInfo.uuid, "scan $scanIndex count $scanCount").then((value) {
       Log.d("Key List: $value");
-      if(navScanIndexList.length == 1 || navScanIndexList.last != 0) {
-        navScanIndexList.add(int.tryParse(value[0]));
+      if(databasePanelData.navScanIndexList.length == 1 || databasePanelData.navScanIndexList.last != 0) {
+        context.read<DatabasePanelBloc>().add(KeyScanNavIndexListAdd(int.tryParse(value[0])));
       }
       List<String> scanKeyList = List.of(value[1]).map((e) => "$e").toList();
       context.read<DatabasePanelBloc>().add(ScanKeyListChanged(scanKeyList));
@@ -167,10 +165,11 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                           if(StringUtil.isNotEqual(value, databasePanelData.dbIndex)) {
                             context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbIndex: value));
                             context.read<DatabasePanelBloc>().add(ScanKeyListClear());
-                            setState(() {
-                              navScanIndex = 0;
-                              navScanIndexList = List.of([0], growable: true);
-                            });
+                            context.read<DatabasePanelBloc>().add(KeyScanNavIndexListClear());
+                            // setState(() {
+                            //   navScanIndex = 0;
+                            //   navScanIndexList = List.of([0], growable: true);
+                            // });
                             selectAndSize(value);
                           }
                         },
@@ -196,11 +195,13 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                   InkWell(
                     onTap: () async {
                       context.read<DatabasePanelBloc>().add(ScanKeyListClear());
-                      setState(() {
-                        navScanIndex = 0;
-                        navScanIndexList = List.of([0], growable: true);
-                      });
-                      selectAndSize(databasePanelData.dbIndex);
+                      context.read<DatabasePanelBloc>().add(KeyScanNavIndexListClear());
+                      // setState(() {
+                      //   navScanIndex = 0;
+                      //   navScanIndexList = List.of([0], growable: true);
+                      // });
+                      //selectAndSize(databasePanelData.dbIndex);
+                      loadKeyList(0);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(5),
@@ -251,53 +252,63 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                   ));
                 }
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Offstage(
-                    offstage: navScanIndex <= 0,
-                    child: InkWell(
-                      onTap: () {
-                        navScanIndex--;
-                        loadKeyList();
-                      },
-                      hoverColor: Colors.red.withAlpha(128),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_back),
-                            SizedBox(width: 5,),
-                            Text("上一页")
-                          ],
+              BlocBuilder<DatabasePanelBloc, DatabasePanelData>(
+                buildWhen: (previous, current) {
+                  return previous.navScanIndex != current.navScanIndex
+                    || previous.navScanIndexList != current.navScanIndexList;
+                },
+                builder: (context, state) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Offstage(
+                        offstage: state.navScanIndex <= 0,
+                        child: InkWell(
+                          onTap: () {
+                            int index = state.navScanIndex - 1;
+                            loadKeyList(index);
+                            context.read<DatabasePanelBloc>().add(KeyScanNavIndexChanged(index));
+                          },
+                          hoverColor: Colors.red.withAlpha(128),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_back),
+                                SizedBox(width: 5,),
+                                Text("上一页")
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(child: Container()),
-                  Offstage(
-                    offstage: navScanIndex >= navScanIndexList.length-1 || navScanIndexList[navScanIndex+1] == 0,
-                    child: InkWell(
-                      onTap: () {
-                        navScanIndex++;
-                        loadKeyList();
-                      },
-                      hoverColor: Colors.red.withAlpha(128),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_forward),
-                            SizedBox(width: 5,),
-                            Text("下一页")
-                          ],
+                      Expanded(child: Container()),
+                      Offstage(
+                        offstage: state.navScanIndex >= state.navScanIndexList.length-1 || state.navScanIndexList[state.navScanIndex+1] == 0,
+                        child: InkWell(
+                          onTap: () {
+                            int index = state.navScanIndex + 1;
+                            loadKeyList(index);
+                            context.read<DatabasePanelBloc>().add(KeyScanNavIndexChanged(index));
+                          },
+                          hoverColor: Colors.red.withAlpha(128),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_forward),
+                                SizedBox(width: 5,),
+                                Text("下一页")
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                }
               )
             ],
           ),

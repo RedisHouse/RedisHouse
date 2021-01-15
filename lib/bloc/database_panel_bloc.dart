@@ -24,6 +24,19 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           context.read<MainPageBloc>().add(ConnectionDBSizeUpdateEvent(state.connection.id, state.dbIndex, event.dbSize));
         }
       });
+    } else if(event is KeyScanNavIndexListClear) {
+      yield state.rebuild((b) => b
+        ..navScanIndex=0
+        ..navScanIndexList=ListBuilder([0])
+      );
+    } else if(event is KeyScanNavIndexListAdd) {
+      yield state.rebuild((b) => b
+          ..navScanIndexList.add(event.index)
+      );
+    } else if(event is KeyScanNavIndexChanged) {
+      yield state.rebuild((b) => b
+        ..navScanIndex=event.index
+      );
     } else if(event is SelectedKey) {
       yield state.rebuild((b) => b.selectedKey=event.selectedKey);
     } else if(event is ScanKeyListChanged) {
@@ -318,6 +331,20 @@ class DBORDBSizeChanged extends DatabasePanelEvent {
   String dbIndex;
   int dbSize;
   DBORDBSizeChanged({this.dbIndex, this.dbSize});
+}
+
+class KeyScanNavIndexListClear extends DatabasePanelEvent {
+  KeyScanNavIndexListClear();
+}
+
+class KeyScanNavIndexListAdd extends DatabasePanelEvent {
+  int index;
+  KeyScanNavIndexListAdd(this.index);
+}
+
+class KeyScanNavIndexChanged extends DatabasePanelEvent {
+  int index;
+  KeyScanNavIndexChanged(this.index);
 }
 
 class KeyDetailChanged extends DatabasePanelEvent {

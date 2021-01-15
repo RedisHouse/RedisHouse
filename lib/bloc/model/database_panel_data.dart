@@ -27,6 +27,12 @@ abstract class DatabasePanelData implements Built<DatabasePanelData, DatabasePan
   @nullable
   BuiltList<String> get scanKeyList;
 
+  @nullable
+  int get navScanIndex;
+
+  @nullable
+  BuiltList<int> get navScanIndexList;
+
   DatabasePanelData._();
   factory DatabasePanelData([updates(DatabasePanelDataBuilder b)]) = _$DatabasePanelData;
 

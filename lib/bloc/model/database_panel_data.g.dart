@@ -21,6 +21,10 @@ class _$DatabasePanelData extends DatabasePanelData {
   final String selectedKey;
   @override
   final BuiltList<String> scanKeyList;
+  @override
+  final int navScanIndex;
+  @override
+  final BuiltList<int> navScanIndexList;
 
   factory _$DatabasePanelData(
           [void Function(DatabasePanelDataBuilder) updates]) =>
@@ -33,7 +37,9 @@ class _$DatabasePanelData extends DatabasePanelData {
       this.dbSize,
       this.keyDetail,
       this.selectedKey,
-      this.scanKeyList})
+      this.scanKeyList,
+      this.navScanIndex,
+      this.navScanIndexList})
       : super._();
 
   @override
@@ -54,7 +60,9 @@ class _$DatabasePanelData extends DatabasePanelData {
         dbSize == other.dbSize &&
         keyDetail == other.keyDetail &&
         selectedKey == other.selectedKey &&
-        scanKeyList == other.scanKeyList;
+        scanKeyList == other.scanKeyList &&
+        navScanIndex == other.navScanIndex &&
+        navScanIndexList == other.navScanIndexList;
   }
 
   @override
@@ -63,12 +71,18 @@ class _$DatabasePanelData extends DatabasePanelData {
         $jc(
             $jc(
                 $jc(
-                    $jc($jc($jc(0, panelUUID.hashCode), connection.hashCode),
-                        dbIndex.hashCode),
-                    dbSize.hashCode),
-                keyDetail.hashCode),
-            selectedKey.hashCode),
-        scanKeyList.hashCode));
+                    $jc(
+                        $jc(
+                            $jc(
+                                $jc($jc(0, panelUUID.hashCode),
+                                    connection.hashCode),
+                                dbIndex.hashCode),
+                            dbSize.hashCode),
+                        keyDetail.hashCode),
+                    selectedKey.hashCode),
+                scanKeyList.hashCode),
+            navScanIndex.hashCode),
+        navScanIndexList.hashCode));
   }
 
   @override
@@ -80,7 +94,9 @@ class _$DatabasePanelData extends DatabasePanelData {
           ..add('dbSize', dbSize)
           ..add('keyDetail', keyDetail)
           ..add('selectedKey', selectedKey)
-          ..add('scanKeyList', scanKeyList))
+          ..add('scanKeyList', scanKeyList)
+          ..add('navScanIndex', navScanIndex)
+          ..add('navScanIndexList', navScanIndexList))
         .toString();
   }
 }
@@ -121,6 +137,16 @@ class DatabasePanelDataBuilder
   set scanKeyList(ListBuilder<String> scanKeyList) =>
       _$this._scanKeyList = scanKeyList;
 
+  int _navScanIndex;
+  int get navScanIndex => _$this._navScanIndex;
+  set navScanIndex(int navScanIndex) => _$this._navScanIndex = navScanIndex;
+
+  ListBuilder<int> _navScanIndexList;
+  ListBuilder<int> get navScanIndexList =>
+      _$this._navScanIndexList ??= new ListBuilder<int>();
+  set navScanIndexList(ListBuilder<int> navScanIndexList) =>
+      _$this._navScanIndexList = navScanIndexList;
+
   DatabasePanelDataBuilder();
 
   DatabasePanelDataBuilder get _$this {
@@ -132,6 +158,8 @@ class DatabasePanelDataBuilder
       _keyDetail = _$v.keyDetail;
       _selectedKey = _$v.selectedKey;
       _scanKeyList = _$v.scanKeyList?.toBuilder();
+      _navScanIndex = _$v.navScanIndex;
+      _navScanIndexList = _$v.navScanIndexList?.toBuilder();
       _$v = null;
     }
     return this;
@@ -162,7 +190,9 @@ class DatabasePanelDataBuilder
               dbSize: dbSize,
               keyDetail: keyDetail,
               selectedKey: selectedKey,
-              scanKeyList: _scanKeyList?.build());
+              scanKeyList: _scanKeyList?.build(),
+              navScanIndex: navScanIndex,
+              navScanIndexList: _navScanIndexList?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -171,6 +201,9 @@ class DatabasePanelDataBuilder
 
         _$failedField = 'scanKeyList';
         _scanKeyList?.build();
+
+        _$failedField = 'navScanIndexList';
+        _navScanIndexList?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
             'DatabasePanelData', _$failedField, e.toString());
