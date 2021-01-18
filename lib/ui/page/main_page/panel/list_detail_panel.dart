@@ -10,6 +10,7 @@ import 'package:ndialog/ndialog.dart';
 import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/log/log.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
 import 'package:redis_house/ui/page/main_page/dialog/new_value_dialog.dart';
 import 'package:redis_house/util/string_util.dart';
@@ -38,7 +39,8 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
   NewConnectionData connection;
   String key;
 
-  int pageIndex = 1;
+  ListKeyDetail keyDetail;
+  // int pageIndex = 1;
   int scanCount = 20;
 
   @override
@@ -57,7 +59,7 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
   void didInitState() {
     keyDetailStreamSubscription = BlocProvider.of<DatabasePanelBloc>(context).listen((DatabasePanelData data) {
       if(mounted && data != null && data.keyDetail != null && data.keyDetail is ListKeyDetail) {
-        ListKeyDetail keyDetail = data.keyDetail;
+        keyDetail = data.keyDetail;
         _keyEditingController.text = keyDetail.key;
         _renameTextEditingController.text = keyDetail.key;
         _ttlTextEditingController.text = "${keyDetail.ttl}";
@@ -67,8 +69,7 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
     key = data.keyDetail.key;
     panelUUID = data.panelUUID;
     connection = data.connection;
-    ListKeyDetail keyDetail = data.keyDetail;
-    pageIndex = keyDetail.pageIndex;
+    keyDetail = data.keyDetail;
     _keyEditingController.text = keyDetail.key;
     _renameTextEditingController.text = keyDetail.key;
     _ttlTextEditingController.text = "${keyDetail.ttl}";
@@ -397,13 +398,13 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                           color: Colors.blueAccent.withAlpha(128),
                           onPressed: () async {
                             int llen = await Redis.instance.execute(connection.id, panelUUID, "llen $key");
-                            List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key 0 $scanCount");
+                            List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key 0 ${scanCount-1}");
                             List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
 
                             context.read<DatabasePanelBloc>().add(ListRefresh(llen, 1, valueList));
-                            setState(() {
-                              pageIndex = 1;
-                            });
+                            // setState(() {
+                            //   pageIndex = 1;
+                            // });
                             BotToast.showText(text: "已刷新。");
                           },
                           child: Padding(
@@ -537,26 +538,30 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                 ),
                 Row(
                   children: [
-                    // Expanded(child:  navScanIndex <= 0 ? Container() : MaterialButton(
-                    //     onPressed: () {
-                    //       navScanIndex--;
-                    //       scanKeyValueMap();
-                    //     },
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.all(8.0),
-                    //       child: Icon(Icons.arrow_back),
-                    //     )
-                    // )),
-                    // Expanded(child: (navScanIndex >= navScanIndexList.length-1 || navScanIndexList[navScanIndex+1] == 0) ? Container() : MaterialButton(
-                    //     onPressed: () {
-                    //       navScanIndex++;
-                    //       scanKeyValueMap();
-                    //     },
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.all(8.0),
-                    //       child: Icon(Icons.arrow_forward),
-                    //     )
-                    // )),
+                    Expanded(child:  keyDetail.pageIndex == 1 ? Container() : MaterialButton(
+                        onPressed: () async {
+                          List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key ${calcPageStart(keyDetail.pageIndex - 1)} ${calcPageEnd(keyDetail.pageIndex - 1)}");
+                          List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
+                          context.read<DatabasePanelBloc>().add(ListPageUpdate(keyDetail.pageIndex - 1, valueList));
+                          Log.d("Pre Page: ${keyDetail.pageIndex - 1} $valueList");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(Icons.arrow_back),
+                        )
+                    )),
+                    Expanded(child: (keyDetail.pageIndex == maxPage()) ? Container() : MaterialButton(
+                        onPressed: () async {
+                          List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key ${calcPageStart(keyDetail.pageIndex + 1)} ${calcPageEnd(keyDetail.pageIndex + 1)}");
+                          List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
+                          context.read<DatabasePanelBloc>().add(ListPageUpdate(keyDetail.pageIndex + 1, valueList));
+                          Log.d("Pre Page: ${keyDetail.pageIndex + 1} $valueList");
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(Icons.arrow_forward),
+                        )
+                    )),
                   ],
                 ),
               ],
@@ -566,8 +571,21 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
     );
   }
 
+  int calcPageStart(int page) {
+    return (page - 1) * scanCount;
+  }
+
+  int calcPageEnd(int page) {
+    return page * scanCount - 1;
+  }
+
   int getPosition(int index) {
-    return (pageIndex-1) * scanCount+index;
+    return (keyDetail.pageIndex-1) * scanCount+index;
+  }
+
+  int maxPage() {
+    int count = keyDetail.llen ~/ scanCount;
+    return (keyDetail.llen % scanCount == 0) ? count : count + 1;
   }
 
 }
