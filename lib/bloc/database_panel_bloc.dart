@@ -325,13 +325,16 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
         var keyDetail = b.keyDetail;
         if(keyDetail is ListKeyDetail) {
           ListKeyDetail listKeyDetail = keyDetail;
-          keyDetail = listKeyDetail.rebuild((b) => b
-            ..rangeList.insert(0, event.value)
-            ..selectedIndex=0
-            ..selectedValue=event.value
-            ..selectedValueChanged=""
-            ..llen=b.llen+1
-          );
+          keyDetail = listKeyDetail.rebuild((b) {
+            if(b.pageIndex == 1) {
+              b.rangeList.insert(0, event.value);
+              b.rangeList.removeLast();
+              b.selectedIndex=0;
+              b.selectedValue=event.value;
+              b.selectedValueChanged="";
+            }
+            b.llen=b.llen+1;
+          });
           b.keyDetail = keyDetail;
         }
       });

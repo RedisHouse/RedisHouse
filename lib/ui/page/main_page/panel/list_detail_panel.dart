@@ -435,7 +435,12 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                               tmpValue = result[1];
                               if(saveResult??false) {
                                 context.read<DatabasePanelBloc>().add(ListNewValue(tmpValue));
-                                _selectedValueEditingController.text = tmpValue;
+                                if(keyDetail.pageIndex == 1) {
+                                  _selectedValueEditingController.text = tmpValue;
+                                } else {
+                                  // 重新加载本页数据
+                                  loadPage(keyDetail.pageIndex);
+                                }
                                 tmpValue = "";
                               }
                             }
@@ -492,6 +497,8 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                                   }).then((value) {
                                     if(value == 1) {
                                       context.read<DatabasePanelBloc>().add(ListSelectedValueDeleted(keyDetail.selectedValue));
+                                      // 重新加载本页数据
+                                      loadPage(keyDetail.pageIndex);
                                       BotToast.showText(text: "已删除。");
                                     } else {
                                       throw "删除失败！$value";
@@ -539,23 +546,17 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                 Row(
                   children: [
                     Expanded(child:  keyDetail.pageIndex == 1 ? Container() : MaterialButton(
-                        onPressed: () async {
-                          List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key ${calcPageStart(keyDetail.pageIndex - 1)} ${calcPageEnd(keyDetail.pageIndex - 1)}");
-                          List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
-                          context.read<DatabasePanelBloc>().add(ListPageUpdate(keyDetail.pageIndex - 1, valueList));
-                          Log.d("Pre Page: ${keyDetail.pageIndex - 1} $valueList");
+                        onPressed: () {
+                          loadPage(keyDetail.pageIndex - 1);
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Icon(Icons.arrow_back),
                         )
                     )),
-                    Expanded(child: (keyDetail.pageIndex == maxPage()) ? Container() : MaterialButton(
-                        onPressed: () async {
-                          List lrangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key ${calcPageStart(keyDetail.pageIndex + 1)} ${calcPageEnd(keyDetail.pageIndex + 1)}");
-                          List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
-                          context.read<DatabasePanelBloc>().add(ListPageUpdate(keyDetail.pageIndex + 1, valueList));
-                          Log.d("Pre Page: ${keyDetail.pageIndex + 1} $valueList");
+                    Expanded(child: (keyDetail.pageIndex >= maxPage()) ? Container() : MaterialButton(
+                        onPressed: () {
+                          loadPage(keyDetail.pageIndex + 1);
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -569,6 +570,12 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
           );
         }
     );
+  }
+
+  void loadPage(int page) async {
+    List rangeList = await Redis.instance.execute(connection.id, panelUUID, "lrange $key ${calcPageStart(page)} ${calcPageEnd(page)}");
+    List<String> valueList = List.of(rangeList).map((e) => "$e").toList();
+    context.read<DatabasePanelBloc>().add(ListPageUpdate(page, valueList));
   }
 
   int calcPageStart(int page) {
