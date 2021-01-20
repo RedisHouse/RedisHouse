@@ -19,6 +19,7 @@ import 'package:redis_house/ui/page/main_page/panel/list_detail_panel.dart';
 import 'package:redis_house/ui/page/main_page/panel/set_detail_panel.dart';
 import 'package:redis_house/ui/page/main_page/panel/string_detail_panel.dart';
 import 'package:redis_house/ui/page/main_page/panel/zset_detail_panel.dart';
+import 'package:redis_house/util/data_structure.dart';
 import 'package:redis_house/util/string_util.dart';
 
 class DatabasePanel extends StatefulWidget {
@@ -364,8 +365,19 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         );
       } else if(StringUtil.isEqual("zset", keyType)) {
         keyDetail = ZSetKeyDetail((b)=>b..key=key..type=keyType);
-
-
+        int zlen = await Redis.instance.execute(connection.id, panelInfo.uuid, "zcard $key");
+        List rangeList = await Redis.instance.execute(connection.id, panelInfo.uuid, "zrange $key 0 ${scanCount-1} WITHSCORES");
+        List<Pair<String, String>> valueList = List.empty(growable: true);
+        rangeList.asMap().forEach((index, element) {
+          if(index % 2 != 0) {
+            valueList.add(Pair<String, String>("$element", "${rangeList[index-1]}"));
+          }
+        });
+        keyDetail = keyDetail.rebuild((b)=>b
+          ..zlen = zlen
+          ..pageIndex = 1
+          ..valueList = valueList.toBuiltList().toBuilder()
+        );
       } else if(StringUtil.isEqual("none", keyType)) {
         throw "KEY 不存在，请刷新！";
       } else {

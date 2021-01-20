@@ -934,6 +934,20 @@ class SetKeyDetailBuilder
 
 class _$ZSetKeyDetail extends ZSetKeyDetail {
   @override
+  final int zlen;
+  @override
+  final BuiltList<Pair<String, String>> valueList;
+  @override
+  final int pageIndex;
+  @override
+  final String selectedScore;
+  @override
+  final String selectedScoreChanged;
+  @override
+  final String selectedValue;
+  @override
+  final String selectedValueChanged;
+  @override
   final String key;
   @override
   final String type;
@@ -943,7 +957,18 @@ class _$ZSetKeyDetail extends ZSetKeyDetail {
   factory _$ZSetKeyDetail([void Function(ZSetKeyDetailBuilder) updates]) =>
       (new ZSetKeyDetailBuilder()..update(updates)).build();
 
-  _$ZSetKeyDetail._({this.key, this.type, this.ttl}) : super._();
+  _$ZSetKeyDetail._(
+      {this.zlen,
+      this.valueList,
+      this.pageIndex,
+      this.selectedScore,
+      this.selectedScoreChanged,
+      this.selectedValue,
+      this.selectedValueChanged,
+      this.key,
+      this.type,
+      this.ttl})
+      : super._();
 
   @override
   ZSetKeyDetail rebuild(void Function(ZSetKeyDetailBuilder) updates) =>
@@ -956,6 +981,13 @@ class _$ZSetKeyDetail extends ZSetKeyDetail {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is ZSetKeyDetail &&
+        zlen == other.zlen &&
+        valueList == other.valueList &&
+        pageIndex == other.pageIndex &&
+        selectedScore == other.selectedScore &&
+        selectedScoreChanged == other.selectedScoreChanged &&
+        selectedValue == other.selectedValue &&
+        selectedValueChanged == other.selectedValueChanged &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -963,12 +995,36 @@ class _$ZSetKeyDetail extends ZSetKeyDetail {
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc(
+                $jc(
+                    $jc(
+                        $jc(
+                            $jc(
+                                $jc(
+                                    $jc($jc(0, zlen.hashCode),
+                                        valueList.hashCode),
+                                    pageIndex.hashCode),
+                                selectedScore.hashCode),
+                            selectedScoreChanged.hashCode),
+                        selectedValue.hashCode),
+                    selectedValueChanged.hashCode),
+                key.hashCode),
+            type.hashCode),
+        ttl.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('ZSetKeyDetail')
+          ..add('zlen', zlen)
+          ..add('valueList', valueList)
+          ..add('pageIndex', pageIndex)
+          ..add('selectedScore', selectedScore)
+          ..add('selectedScoreChanged', selectedScoreChanged)
+          ..add('selectedValue', selectedValue)
+          ..add('selectedValueChanged', selectedValueChanged)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -979,6 +1035,40 @@ class _$ZSetKeyDetail extends ZSetKeyDetail {
 class ZSetKeyDetailBuilder
     implements Builder<ZSetKeyDetail, ZSetKeyDetailBuilder> {
   _$ZSetKeyDetail _$v;
+
+  int _zlen;
+  int get zlen => _$this._zlen;
+  set zlen(int zlen) => _$this._zlen = zlen;
+
+  ListBuilder<Pair<String, String>> _valueList;
+  ListBuilder<Pair<String, String>> get valueList =>
+      _$this._valueList ??= new ListBuilder<Pair<String, String>>();
+  set valueList(ListBuilder<Pair<String, String>> valueList) =>
+      _$this._valueList = valueList;
+
+  int _pageIndex;
+  int get pageIndex => _$this._pageIndex;
+  set pageIndex(int pageIndex) => _$this._pageIndex = pageIndex;
+
+  String _selectedScore;
+  String get selectedScore => _$this._selectedScore;
+  set selectedScore(String selectedScore) =>
+      _$this._selectedScore = selectedScore;
+
+  String _selectedScoreChanged;
+  String get selectedScoreChanged => _$this._selectedScoreChanged;
+  set selectedScoreChanged(String selectedScoreChanged) =>
+      _$this._selectedScoreChanged = selectedScoreChanged;
+
+  String _selectedValue;
+  String get selectedValue => _$this._selectedValue;
+  set selectedValue(String selectedValue) =>
+      _$this._selectedValue = selectedValue;
+
+  String _selectedValueChanged;
+  String get selectedValueChanged => _$this._selectedValueChanged;
+  set selectedValueChanged(String selectedValueChanged) =>
+      _$this._selectedValueChanged = selectedValueChanged;
 
   String _key;
   String get key => _$this._key;
@@ -996,6 +1086,13 @@ class ZSetKeyDetailBuilder
 
   ZSetKeyDetailBuilder get _$this {
     if (_$v != null) {
+      _zlen = _$v.zlen;
+      _valueList = _$v.valueList?.toBuilder();
+      _pageIndex = _$v.pageIndex;
+      _selectedScore = _$v.selectedScore;
+      _selectedScoreChanged = _$v.selectedScoreChanged;
+      _selectedValue = _$v.selectedValue;
+      _selectedValueChanged = _$v.selectedValueChanged;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -1019,8 +1116,31 @@ class ZSetKeyDetailBuilder
 
   @override
   _$ZSetKeyDetail build() {
-    final _$result =
-        _$v ?? new _$ZSetKeyDetail._(key: key, type: type, ttl: ttl);
+    _$ZSetKeyDetail _$result;
+    try {
+      _$result = _$v ??
+          new _$ZSetKeyDetail._(
+              zlen: zlen,
+              valueList: _valueList?.build(),
+              pageIndex: pageIndex,
+              selectedScore: selectedScore,
+              selectedScoreChanged: selectedScoreChanged,
+              selectedValue: selectedValue,
+              selectedValueChanged: selectedValueChanged,
+              key: key,
+              type: type,
+              ttl: ttl);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'valueList';
+        _valueList?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'ZSetKeyDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

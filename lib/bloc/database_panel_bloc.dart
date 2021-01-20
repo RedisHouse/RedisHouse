@@ -4,6 +4,7 @@ import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/base/base_bloc.dart';
 import 'package:redis_house/log/log.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:redis_house/util/data_structure.dart';
 import 'package:redis_house/util/string_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -431,6 +432,123 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is ZSetRefresh) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.zlen=event.zlen;
+            b.pageIndex=event.pageIndex;
+            b.valueList=event.valueList.toBuiltList().toBuilder();
+            b.selectedScore="";
+            b.selectedScoreChanged="";
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.selectedScore=event.score;
+            b.selectedValue=event.value;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetSelectedScoreChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b
+            ..selectedScoreChanged = event.score
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetNewSelectedScore) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            int index = b.valueList.build().indexWhere((e) => StringUtil.isEqual(e.last, b.selectedValue));
+            Pair<String, String> item = b.valueList[index];
+            item.first = event.score;
+            b.valueList.removeAt(index);
+            b.valueList.insert(index, item);
+            b.selectedScore=event.score;
+            b.selectedScoreChanged;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetSelectedValueChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b
+            ..selectedValueChanged = event.value
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetNewSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            int index = b.valueList.build().indexWhere((e) => StringUtil.isEqual(e.last, b.selectedValue));
+            Pair<String, String> item = b.valueList[index];
+            item.last = event.value;
+            b.valueList.removeAt(index);
+            b.valueList.insert(index, item);
+            b.selectedValue = event.value;
+            b.selectedValueChanged = "";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetSelectedValueDeleted) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) => b
+            ..valueList.removeWhere((e) => StringUtil.isEqual(e.last, event.value))
+            ..selectedScore=""
+            ..selectedScoreChanged=""
+            ..selectedValue=""
+            ..selectedValueChanged = ""
+            ..zlen=b.zlen-1
+          );
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is ZSetPageUpdate) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.pageIndex=event.pageIndex;
+            b.valueList=event.valueList.toBuiltList().toBuilder();
+            b.selectedScore="";
+            b.selectedScoreChanged="";
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
     }
   }
 
@@ -625,4 +743,48 @@ class SetSelectedValueDeleted extends DatabasePanelEvent {
 class SetNewValue extends DatabasePanelEvent {
   String value;
   SetNewValue(this.value);
+}
+
+class ZSetRefresh extends DatabasePanelEvent {
+  int zlen;
+  int pageIndex;
+  List<Pair<String, String>> valueList;
+  ZSetRefresh(this.zlen, this.pageIndex, this.valueList);
+}
+
+class ZSetSelectedValue extends DatabasePanelEvent {
+  String score;
+  String value;
+  ZSetSelectedValue(this.score, this.value);
+}
+
+class ZSetSelectedScoreChanged extends DatabasePanelEvent {
+  String score;
+  ZSetSelectedScoreChanged(this.score);
+}
+
+class ZSetNewSelectedScore extends DatabasePanelEvent {
+  String score;
+  ZSetNewSelectedScore(this.score);
+}
+
+class ZSetSelectedValueChanged extends DatabasePanelEvent {
+  String value;
+  ZSetSelectedValueChanged(this.value);
+}
+
+class ZSetNewSelectedValue extends DatabasePanelEvent {
+  String value;
+  ZSetNewSelectedValue(this.value);
+}
+
+class ZSetSelectedValueDeleted extends DatabasePanelEvent {
+  String value;
+  ZSetSelectedValueDeleted(this.value);
+}
+
+class ZSetPageUpdate extends DatabasePanelEvent {
+  int pageIndex;
+  List<Pair<String, String>> valueList;
+  ZSetPageUpdate(this.pageIndex, this.valueList);
 }

@@ -1,6 +1,7 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
+import 'package:redis_house/util/data_structure.dart';
 
 part 'database_panel_data.g.dart';
 
@@ -141,6 +142,26 @@ abstract class SetKeyDetail implements BaseKeyDetail, Built<SetKeyDetail, SetKey
 
 abstract class ZSetKeyDetail implements BaseKeyDetail, Built<ZSetKeyDetail, ZSetKeyDetailBuilder>  {
 
+  @nullable
+  int get zlen;
+
+  @nullable
+  BuiltList<Pair<String, String>> get valueList;
+
+  @nullable
+  int get pageIndex;
+
+  @nullable
+  String get selectedScore;
+
+  @nullable
+  String get selectedScoreChanged;
+
+  @nullable
+  String get selectedValue;
+
+  @nullable
+  String get selectedValueChanged;
 
   ZSetKeyDetail._();
   factory ZSetKeyDetail([updates(ZSetKeyDetailBuilder b)]) = _$ZSetKeyDetail;

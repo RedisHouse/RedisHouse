@@ -401,9 +401,6 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
                             List<String> valueList = List.of(lrangeList).map((e) => "$e").toList();
 
                             context.read<DatabasePanelBloc>().add(ListRefresh(llen, 1, valueList));
-                            // setState(() {
-                            //   pageIndex = 1;
-                            // });
                             BotToast.showText(text: "已刷新。");
                           },
                           child: Padding(
