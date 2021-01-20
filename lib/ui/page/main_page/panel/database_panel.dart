@@ -166,10 +166,6 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                             context.read<DatabasePanelBloc>().add(DBORDBSizeChanged(dbIndex: value));
                             context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                             context.read<DatabasePanelBloc>().add(KeyScanNavIndexListClear());
-                            // setState(() {
-                            //   navScanIndex = 0;
-                            //   navScanIndexList = List.of([0], growable: true);
-                            // });
                             selectAndSize(value);
                           }
                         },
@@ -196,12 +192,7 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
                     onTap: () async {
                       context.read<DatabasePanelBloc>().add(ScanKeyListClear());
                       context.read<DatabasePanelBloc>().add(KeyScanNavIndexListClear());
-                      // setState(() {
-                      //   navScanIndex = 0;
-                      //   navScanIndexList = List.of([0], growable: true);
-                      // });
-                      //selectAndSize(databasePanelData.dbIndex);
-                      loadKeyList(0);
+                      selectAndSize(databasePanelData.dbIndex);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(5),
@@ -345,7 +336,6 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
             scanKeyValueMap["${keyValueList[index-1]}"] = "$element";
           }
         });
-
         keyDetail = keyDetail.rebuild((b)=>b
           ..hlen = hlen
           ..scanIndex = scanIndex
@@ -363,8 +353,21 @@ class _DatabasePanelState extends State<DatabasePanel> with AfterInitMixin<Datab
         );
       } else if(StringUtil.isEqual("set", keyType)) {
         keyDetail = SetKeyDetail((b)=>b..key=key..type=keyType);
+        int slen = await Redis.instance.execute(connection.id, panelInfo.uuid, "scard $key");
+        var scanResult = await Redis.instance.execute(connection.id, panelInfo.uuid, "sscan $key 0 count $scanCount");
+        int scanIndex = int.tryParse(scanResult[0]);
+        List<String> valueList = List.of(scanResult[1]).map((e) => "$e").toList();
+        keyDetail = keyDetail.rebuild((b)=>b
+          ..slen = slen
+          ..scanIndex = scanIndex
+          ..scanList = valueList.toBuiltList().toBuilder()
+        );
       } else if(StringUtil.isEqual("zset", keyType)) {
         keyDetail = ZSetKeyDetail((b)=>b..key=key..type=keyType);
+
+
+      } else if(StringUtil.isEqual("none", keyType)) {
+        throw "KEY 不存在，请刷新！";
       } else {
         throw "INVALID KEY TYPE";
       }

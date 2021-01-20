@@ -338,6 +338,99 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is SetRefresh) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.slen=event.slen;
+            b.scanIndex=event.scanIndex;
+            b.scanList=event.scanList.toBuiltList().toBuilder();
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetScanChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.scanIndex=event.scanIndex;
+            b.scanList=event.scanList.toBuiltList().toBuilder();
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.selectedValue=event.value;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetSelectedValueChanged) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.selectedValueChanged=event.value;
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetNewSelectedValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.scanList.remove(b.selectedValue);
+            b.scanList.add(event.value);
+            b.selectedValue=event.value;
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetSelectedValueDeleted) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.scanList.remove(event.value);
+            b.slen=b.slen-1;
+            b.selectedValue="";
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
+    } else if(event is SetNewValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is SetKeyDetail) {
+          SetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.scanList.add(event.value);
+            b.slen=b.slen+1;
+            b.selectedValue=event.value;
+            b.selectedValueChanged="";
+          });
+          b.keyDetail = keyDetail;
+        }
+      });
     }
   }
 
@@ -479,6 +572,7 @@ class ListSelectedValueDeleted extends DatabasePanelEvent {
   String value;
   ListSelectedValueDeleted(this.value);
 }
+
 class ListNewSelectedValue extends DatabasePanelEvent {
   String value;
   ListNewSelectedValue(this.value);
@@ -493,4 +587,42 @@ class ListPageUpdate extends DatabasePanelEvent {
   int pageIndex;
   List<String> valueList;
   ListPageUpdate(this.pageIndex, this.valueList);
+}
+
+class SetRefresh extends DatabasePanelEvent {
+  int slen;
+  int scanIndex;
+  List<String> scanList;
+  SetRefresh(this.slen, this.scanIndex, this.scanList);
+}
+
+class SetScanChanged extends DatabasePanelEvent {
+  int scanIndex;
+  List<String> scanList;
+  SetScanChanged(this.scanIndex, this.scanList);
+}
+
+class SetSelectedValue extends DatabasePanelEvent {
+  String value;
+  SetSelectedValue(this.value);
+}
+
+class SetSelectedValueChanged extends DatabasePanelEvent {
+  String value;
+  SetSelectedValueChanged(this.value);
+}
+
+class SetNewSelectedValue extends DatabasePanelEvent {
+  String value;
+  SetNewSelectedValue(this.value);
+}
+
+class SetSelectedValueDeleted extends DatabasePanelEvent {
+  String value;
+  SetSelectedValueDeleted(this.value);
+}
+
+class SetNewValue extends DatabasePanelEvent {
+  String value;
+  SetNewValue(this.value);
 }

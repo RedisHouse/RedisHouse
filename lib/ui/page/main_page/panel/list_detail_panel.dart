@@ -40,7 +40,6 @@ class _ListDetailPanelState extends State<ListDetailPanel> with AfterInitMixin<L
   String key;
 
   ListKeyDetail keyDetail;
-  // int pageIndex = 1;
   int scanCount = 20;
 
   @override

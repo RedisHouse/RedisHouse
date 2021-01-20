@@ -119,6 +119,20 @@ abstract class ListKeyDetail implements BaseKeyDetail, Built<ListKeyDetail, List
 
 abstract class SetKeyDetail implements BaseKeyDetail, Built<SetKeyDetail, SetKeyDetailBuilder>  {
 
+  @nullable
+  int get slen;
+
+  @nullable
+  int get scanIndex;
+
+  @nullable
+  BuiltList<String> get scanList;
+
+  @nullable
+  String get selectedValue;
+
+  @nullable
+  String get selectedValueChanged;
 
   SetKeyDetail._();
   factory SetKeyDetail([updates(SetKeyDetailBuilder b)]) = _$SetKeyDetail;

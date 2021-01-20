@@ -751,6 +751,16 @@ class ListKeyDetailBuilder
 
 class _$SetKeyDetail extends SetKeyDetail {
   @override
+  final int slen;
+  @override
+  final int scanIndex;
+  @override
+  final BuiltList<String> scanList;
+  @override
+  final String selectedValue;
+  @override
+  final String selectedValueChanged;
+  @override
   final String key;
   @override
   final String type;
@@ -760,7 +770,16 @@ class _$SetKeyDetail extends SetKeyDetail {
   factory _$SetKeyDetail([void Function(SetKeyDetailBuilder) updates]) =>
       (new SetKeyDetailBuilder()..update(updates)).build();
 
-  _$SetKeyDetail._({this.key, this.type, this.ttl}) : super._();
+  _$SetKeyDetail._(
+      {this.slen,
+      this.scanIndex,
+      this.scanList,
+      this.selectedValue,
+      this.selectedValueChanged,
+      this.key,
+      this.type,
+      this.ttl})
+      : super._();
 
   @override
   SetKeyDetail rebuild(void Function(SetKeyDetailBuilder) updates) =>
@@ -773,6 +792,11 @@ class _$SetKeyDetail extends SetKeyDetail {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is SetKeyDetail &&
+        slen == other.slen &&
+        scanIndex == other.scanIndex &&
+        scanList == other.scanList &&
+        selectedValue == other.selectedValue &&
+        selectedValueChanged == other.selectedValueChanged &&
         key == other.key &&
         type == other.type &&
         ttl == other.ttl;
@@ -780,12 +804,28 @@ class _$SetKeyDetail extends SetKeyDetail {
 
   @override
   int get hashCode {
-    return $jf($jc($jc($jc(0, key.hashCode), type.hashCode), ttl.hashCode));
+    return $jf($jc(
+        $jc(
+            $jc(
+                $jc(
+                    $jc(
+                        $jc($jc($jc(0, slen.hashCode), scanIndex.hashCode),
+                            scanList.hashCode),
+                        selectedValue.hashCode),
+                    selectedValueChanged.hashCode),
+                key.hashCode),
+            type.hashCode),
+        ttl.hashCode));
   }
 
   @override
   String toString() {
     return (newBuiltValueToStringHelper('SetKeyDetail')
+          ..add('slen', slen)
+          ..add('scanIndex', scanIndex)
+          ..add('scanList', scanList)
+          ..add('selectedValue', selectedValue)
+          ..add('selectedValueChanged', selectedValueChanged)
           ..add('key', key)
           ..add('type', type)
           ..add('ttl', ttl))
@@ -796,6 +836,29 @@ class _$SetKeyDetail extends SetKeyDetail {
 class SetKeyDetailBuilder
     implements Builder<SetKeyDetail, SetKeyDetailBuilder> {
   _$SetKeyDetail _$v;
+
+  int _slen;
+  int get slen => _$this._slen;
+  set slen(int slen) => _$this._slen = slen;
+
+  int _scanIndex;
+  int get scanIndex => _$this._scanIndex;
+  set scanIndex(int scanIndex) => _$this._scanIndex = scanIndex;
+
+  ListBuilder<String> _scanList;
+  ListBuilder<String> get scanList =>
+      _$this._scanList ??= new ListBuilder<String>();
+  set scanList(ListBuilder<String> scanList) => _$this._scanList = scanList;
+
+  String _selectedValue;
+  String get selectedValue => _$this._selectedValue;
+  set selectedValue(String selectedValue) =>
+      _$this._selectedValue = selectedValue;
+
+  String _selectedValueChanged;
+  String get selectedValueChanged => _$this._selectedValueChanged;
+  set selectedValueChanged(String selectedValueChanged) =>
+      _$this._selectedValueChanged = selectedValueChanged;
 
   String _key;
   String get key => _$this._key;
@@ -813,6 +876,11 @@ class SetKeyDetailBuilder
 
   SetKeyDetailBuilder get _$this {
     if (_$v != null) {
+      _slen = _$v.slen;
+      _scanIndex = _$v.scanIndex;
+      _scanList = _$v.scanList?.toBuilder();
+      _selectedValue = _$v.selectedValue;
+      _selectedValueChanged = _$v.selectedValueChanged;
       _key = _$v.key;
       _type = _$v.type;
       _ttl = _$v.ttl;
@@ -836,8 +904,29 @@ class SetKeyDetailBuilder
 
   @override
   _$SetKeyDetail build() {
-    final _$result =
-        _$v ?? new _$SetKeyDetail._(key: key, type: type, ttl: ttl);
+    _$SetKeyDetail _$result;
+    try {
+      _$result = _$v ??
+          new _$SetKeyDetail._(
+              slen: slen,
+              scanIndex: scanIndex,
+              scanList: _scanList?.build(),
+              selectedValue: selectedValue,
+              selectedValueChanged: selectedValueChanged,
+              key: key,
+              type: type,
+              ttl: ttl);
+    } catch (_) {
+      String _$failedField;
+      try {
+        _$failedField = 'scanList';
+        _scanList?.build();
+      } catch (e) {
+        throw new BuiltValueNestedFieldError(
+            'SetKeyDetail', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }
