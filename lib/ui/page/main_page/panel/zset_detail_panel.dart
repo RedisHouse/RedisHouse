@@ -11,6 +11,7 @@ import 'package:redis_house/bloc/database_panel_bloc.dart';
 import 'package:redis_house/bloc/model/database_panel_data.dart';
 import 'package:redis_house/bloc/model/new_connection_data.dart';
 import 'package:redis_house/plugin/redis_plugin/redis.dart';
+import 'package:redis_house/ui/page/main_page/dialog/new_value_dialog.dart';
 import 'package:redis_house/util/data_structure.dart';
 import 'package:redis_house/util/string_util.dart';
 
@@ -245,6 +246,9 @@ class _ZSetDetailPanelState extends State<ZSetDetailPanel> with AfterInitMixin<Z
                       border: OutlineInputBorder(),
                       labelText: "SCORE",
                     ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9.]")),//只允许输入小数
+                    ],
                   )),
                   Offstage(
                     offstage: StringUtil.isEqual(keyDetail.selectedScore, _selectedScoreEditingController.text),
@@ -434,6 +438,7 @@ class _ZSetDetailPanelState extends State<ZSetDetailPanel> with AfterInitMixin<Z
     context.read<DatabasePanelBloc>().add(ZSetSelectedValue(key, value));
   }
 
+  String tmpScore = "";
   String tmpValue = "";
 
   Widget _controlKeyValuePanel() {
@@ -485,22 +490,26 @@ class _ZSetDetailPanelState extends State<ZSetDetailPanel> with AfterInitMixin<Z
                         MaterialButton(
                           color: Colors.blueAccent.withAlpha(128),
                           onPressed: () async {
-                            // List result = await showSetValueDialog(
-                            //   context,
-                            //   connection.id,
-                            //   panelUUID,
-                            //   keyDetail.key,
-                            //   tmpValue: tmpValue,
-                            // );
-                            // if(result != null && result.isNotEmpty) {
-                            //   bool saveResult = result[0];
-                            //   tmpValue = result[1];
-                            //   if(saveResult??false) {
-                            //     context.read<DatabasePanelBloc>().add(SetNewValue(tmpValue));
-                            //     _selectedValueEditingController.text = tmpValue;
-                            //     tmpValue = "";
-                            //   }
-                            // }
+                            List result = await showZSetValueDialog(
+                              context,
+                              connection.id,
+                              panelUUID,
+                              keyDetail.key,
+                              tmpScore: tmpScore,
+                              tmpValue: tmpValue,
+                            );
+                            if(result != null && result.isNotEmpty) {
+                              bool saveResult = result[0];
+                              tmpScore = result[1];
+                              tmpValue = result[2];
+                              if(saveResult??false) {
+                                context.read<DatabasePanelBloc>().add(ZSetNewValue(tmpScore, tmpValue));
+                                // 重新加载本页数据
+                                loadPage(keyDetail.pageIndex);
+                                tmpScore = "";
+                                tmpValue = "";
+                              }
+                            }
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -541,6 +550,8 @@ class _ZSetDetailPanelState extends State<ZSetDetailPanel> with AfterInitMixin<Z
                                   Redis.instance.execute(connection.id, panelUUID, "zrem $key ${keyDetail.selectedValue}").then((value) {
                                     if(value == 1) {
                                       context.read<DatabasePanelBloc>().add(ZSetSelectedValueDeleted(keyDetail.selectedValue));
+                                      // 重新加载本页数据
+                                      loadPage(keyDetail.pageIndex);
                                       BotToast.showText(text: "已删除。");
                                     } else {
                                       BotToast.showText(text: "删除失败！$value");

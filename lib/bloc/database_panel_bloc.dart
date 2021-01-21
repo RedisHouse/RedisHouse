@@ -533,6 +533,21 @@ class DatabasePanelBloc extends BaseBloc<DatabasePanelEvent, DatabasePanelData> 
           b.keyDetail = keyDetail;
         }
       });
+    } else if(event is ZSetNewValue) {
+      yield state.rebuild((b) {
+        var keyDetail = b.keyDetail;
+        if(keyDetail is ZSetKeyDetail) {
+          ZSetKeyDetail setKeyDetail = keyDetail;
+          keyDetail = setKeyDetail.rebuild((b) {
+            b.selectedScore="";
+            b.selectedScoreChanged="";
+            b.selectedValue="";
+            b.selectedValueChanged = "";
+            b.zlen=b.zlen+1;
+            });
+          b.keyDetail = keyDetail;
+        }
+      });
     } else if(event is ZSetPageUpdate) {
       yield state.rebuild((b) {
         var keyDetail = b.keyDetail;
@@ -781,6 +796,12 @@ class ZSetNewSelectedValue extends DatabasePanelEvent {
 class ZSetSelectedValueDeleted extends DatabasePanelEvent {
   String value;
   ZSetSelectedValueDeleted(this.value);
+}
+
+class ZSetNewValue extends DatabasePanelEvent {
+  String score;
+  String value;
+  ZSetNewValue(this.score, this.value);
 }
 
 class ZSetPageUpdate extends DatabasePanelEvent {
